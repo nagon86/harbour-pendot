@@ -35,42 +35,54 @@ Dialog {
     id: settingsDialog
 
     property int timerInterval
-    property string number
-    Component.onCompleted: console.log("Pages: " + pageStack.depth)
+    property int tmp
 
     onAccepted: {
         console.log("Pages: " + pageStack.depth)
-        pageStack.replace(Qt.resolvedUrl("MainPage.qml"))
+        if (tmp >= 1 && tmp < 100000) {
+            jna.trainNr = tmp.toString()
+            refreshTimer.interval = refreshInterval.value * 60 * 1000
+            refreshTimer.start() // Restarts the timer
+        }
+        else {
+            console.log("Error with the train number, should not happen.")
+        }
     }
 
-    SilicaFlickable {
-        anchors.fill: parent
+    Column {
+        id: optionsContainer
+        width: parent.width
+
         DialogHeader {
             id: dialogHeader
             title: qsTr("Search Page")
         }
 
-        Column {
-            id: optionsContainer
-
-            anchors {
-                top: header.bottom
-                left: parent.left
-                right: parent.right
-            }
-
-            TextSwitch {
-                id: chatOnlySwitch
-                checked: chatOnly
-                text: qsTr("Chat only")
-
-                onCheckedChanged: {
-                    console.log("Checked")
+        TextField {
+            id: trainNrField
+            width: parent.width
+            placeholderText: "Insert Train Number"
+            label: "Train Number"
+            onFocusChanged:  {
+                if (tmp = trainNrField.text*1) {
+                    tmp = trainNrField.text*1
+                }
+                else {
+                    trainNrField.text = "Please insert integer"
                 }
             }
         }
 
-        VerticalScrollDecorator {}
+        Slider {
+            width: parent.width
+            id: refreshInterval
+            minimumValue: 1
+            maximumValue: 60
+            value: 5
+            stepSize: 1
+            valueText: value + " min"
+            label: "Refresh interval"
+        }
     }
 }
 

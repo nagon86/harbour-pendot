@@ -38,15 +38,17 @@ import harbour.pendot.timetablemodel 1.0
 Page {
     id: page
 
-    /*Junat {
-        id: jna
-        Component.onCompleted: {
-            myModel.setPointer(jna.getPointer())
-        }
+    Component.onCompleted: {
+        dTimer.start()
     }
-    TimeTableModel {
-        id : myModel
-    }*/
+
+    Timer {
+        id: dTimer
+        interval: 1000
+        repeat: false
+        running: false
+        onTriggered: pageStack.push(Qt.resolvedUrl("SecondPage.qml"))
+    }
 
     // To enable PullDownMenu, place our content in a SilicaFlickable
     SilicaFlickable {
@@ -97,7 +99,7 @@ Page {
                 color: Theme.secondaryHighlightColor
                 font.pixelSize: 0
             }
-            TextField {
+            /*TextField {
                 id: testField
                 width: 160
                 placeholderText: qsTr("Text box")
@@ -108,7 +110,7 @@ Page {
                     jna.trainNr = testField.text
                     refreshTimer.start()
                 }
-            }
+            }*/
 
             SilicaListView {
                 width: parent.width
@@ -138,7 +140,7 @@ Page {
                     Label {
                         id: ifStop
                         x: Theme.paddingLarge
-                        width: Theme.paddingSmall * 5
+                        width: Theme.paddingSmall * 4
                         anchors.verticalCenter: parent.verticalCenter
                         horizontalAlignment: Label.AlignHCenter
                         text: fillerChar
@@ -146,8 +148,18 @@ Page {
                         font.pixelSize: Theme.fontSizeLarge
                         font.bold: true
                     }
-                    Label {
+                    // dumy for additional spacing
+                    Rectangle {
+                        id: dummy1
                         anchors.left: ifStop.right
+                        width: Theme.paddingMedium
+                        height: parent.height
+                        color: Theme.primaryColor
+                        opacity: 0
+                        visible: true
+                    }
+                    Label {
+                        anchors.left: dummy1.right
                         id: timeMain
                         x: Theme.paddingLarge
                         horizontalAlignment: Label.AlignHCenter
@@ -172,9 +184,18 @@ Page {
                         font.strikeout: true
                         visible: differenceInMin == 0 ? false : true
                     }
-
-                    Label {
+                    // dumy for additional spacing
+                    Rectangle {
+                        id: dummy2
                         anchors.left: timeMain.right
+                        width: Theme.paddingMedium
+                        height: parent.height
+                        color: Theme.primaryColor
+                        opacity: 0
+                        visible: true
+                    }
+                    Label {
+                        anchors.left: dummy2.right
                         id: station
                         x: Theme.paddingLarge
                         horizontalAlignment: Label.AlignLeft
