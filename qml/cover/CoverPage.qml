@@ -32,10 +32,29 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 
 CoverBackground {
-    Label {
+    Column {
         id: label
         anchors.centerIn: parent
-        text: qsTr("My Cover")
+        Label {
+            text: qsTr("Train Ready:")
+        }
+        Label {
+            horizontalAlignment: Text.AlignLeft
+            color: Theme.highlightColor
+            text: qsTr("Source:")
+        }
+        Label {
+            horizontalAlignment: Text.AlignRight
+            text: jna.getTrainReadySource
+        }
+        Label {
+            color: Theme.highlightColor
+            text: qsTr("Timestamp:")
+        }
+        Label {
+            text: jna.getTrainReadyTime
+            horizontalAlignment: Text.AlignRight
+        }
     }
 
     CoverActionList {

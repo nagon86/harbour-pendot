@@ -68,7 +68,8 @@ Dialog {
                     tmp = trainNrField.text*1
                 }
                 else {
-                    trainNrField.text = "Please insert integer"
+                    //trainNrField.text = "Please insert integer"
+                    trainNrField.text = "49"
                 }
             }
         }

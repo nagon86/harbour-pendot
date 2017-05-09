@@ -14,6 +14,9 @@ class Junat : public QObject {
     Q_PROPERTY(QString getOperatorCode READ getOperatorCode NOTIFY refreshGui)
     Q_PROPERTY(QString getTrainType READ getTrainType NOTIFY refreshGui)
     Q_PROPERTY(QString getDepartureDate READ getDepartureDate NOTIFY refreshGui)
+    Q_PROPERTY(QString getTrainReadySource READ getTrainReadySource NOTIFY refreshGui)
+    Q_PROPERTY(QString getTrainReadyAccepted READ getTrainReadyAccepted NOTIFY refreshGui)
+    Q_PROPERTY(QString getTrainReadyTime READ getTrainReadyTime NOTIFY refreshGui)
     //Q_PROPERTY(QStringList* getStationList READ getStationList NOTIFY refreshGui)
 
 
@@ -46,6 +49,16 @@ public:
         }
     };
 
+    struct trainReadying {
+        QString source;
+        bool accepted;
+        QDateTime timeStamp;
+        //---------------
+        //: Constructor :
+        //---------------
+        trainReadying() : accepted(false) {}
+    };
+
     explicit Junat(QObject *parent = 0);
     ~Junat();
     //QString get (QString url);
@@ -55,6 +68,9 @@ public:
     QString getOperatorCode() const;
     QString getTrainType() const;
     QString getDepartureDate() const;
+    QString getTrainReadySource() const;
+    QString getTrainReadyAccepted() const;
+    QString getTrainReadyTime() const;
     const timeTableRow* getTimeTableRow(int index) const;
     int getTimeTableCount(void ) const;
     void setTrainNr(QString nr);
@@ -72,6 +88,7 @@ private:
     QString cancelled;
     QString version;
     QDateTime timetableAcceptanceDate;
+    trainReadying trainReady;
     //std::vector<timeTableRow> timeTableRows;
     QVector<timeTableRow> timeTableRows;
 

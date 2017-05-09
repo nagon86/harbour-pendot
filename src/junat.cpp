@@ -12,8 +12,8 @@ Junat::Junat(QObject *parent) :
     trainNr("0"),
     //departureDate(""),
     operatorUICCode(""),
-    operatorShortCode("evt"),
-    trainType("evt"),
+    operatorShortCode("NULL"),
+    trainType("NULL"),
     trainCategory(""),
     commuterLineID(""),
     runningCurrently("false"),
@@ -24,6 +24,7 @@ Junat::Junat(QObject *parent) :
     // Create class for network manager
     n_manager = new QNetworkAccessManager(this);
 
+    timetableAcceptanceDate = QDateTime::fromString("1970-01-01", "yyyy-MMM-dd");
     s_trainNr = "";
 
     // Connect network manager to parseJSON
@@ -139,6 +140,9 @@ int Junat::parseData(int index, QString prevParam) {
         bOpen++;
         index++;
     }
+    else if ( prevParam == "trainReady") {
+        index++;
+    }
     else {
         // Fail?
     }
@@ -166,7 +170,13 @@ int Junat::parseData(int index, QString prevParam) {
             value.clear();
         }
         else if ( !isValue && JSONData.at(index) == ':' ) {
-            isValue = true;
+            if ( param == "trainReady") {
+                index = parseData(index, param)-1;
+                param.clear();
+            }
+            else {
+                isValue = true;
+            }
         }
         else if ( JSONData.at(index) == ',' ) {
             storeData(param, value, prevParam, &tmp);
@@ -187,7 +197,7 @@ int Junat::parseData(int index, QString prevParam) {
         }
     index++;
     } while (bOpen > 0);
-    return bOpen;
+    return index;
 }
 
 bool Junat::storeData(QString p, QString v, QString pp, timeTableRow* t) {
@@ -198,8 +208,9 @@ bool Junat::storeData(QString p, QString v, QString pp, timeTableRow* t) {
         else if ( pp == "causes") {
             addCauseCode(t, p, v);
         }
-        else if ( pp == "trainReadies") {
+        else if ( pp == "trainReady") {
             qDebug() << "Train ready information. Discarding: " + p + ", " + v;
+            addMetaData(p, v);
         }
     }
     else {
@@ -245,6 +256,20 @@ void Junat::addMetaData(QString p, QString v) {
     }
     else if ( p == "timetableAcceptanceDate") {
         timetableAcceptanceDate = QDateTime::fromString(v, Qt::ISODate);
+    }
+    else if ( p == "source") {
+        trainReady.source = v;
+    }
+    else if ( p == "accepted") {
+        if ( v == "true" ) {
+            trainReady.accepted = true;
+        }
+        else {
+            trainReady.accepted = false;
+        }
+    }
+    else if ( p == "timestamp") {
+        trainReady.timeStamp = QDateTime::fromString(v, Qt::ISODate);
     }
     else {
 #ifdef QT_QML_DEBUG
@@ -427,4 +452,21 @@ void Junat::filterTimeTable(QString type) {
     }
 
     filteredTimeTable.push_back( &timeTableRows[timeTableRows.length()-1] );
+}
+
+QString Junat::getTrainReadySource() const {
+    return trainReady.source;
+}
+
+QString Junat::getTrainReadyAccepted() const {
+    if ( trainReady.accepted ) {
+        return "TRUE";
+    }
+    else {
+        return "FALSE";
+    }
+}
+
+QString Junat::getTrainReadyTime() const {
+    return trainReady.timeStamp.toLocalTime().toString("HH:mm:ss");
 }
