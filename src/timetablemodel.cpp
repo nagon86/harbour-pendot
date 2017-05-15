@@ -82,10 +82,6 @@ void TimeTableModel::getNewTable() {
         return;
     }
 
-#ifdef QT_QML_DEBUG
-    qDebug() << "Updating table" << timeTableLength;
-#endif
-
     QAbstractListModel::beginRemoveRows(QModelIndex(),0,m_timeTable.count());
     m_timeTable.clear();
 
@@ -118,8 +114,4 @@ void TimeTableModel::getNewTable() {
     }
 
     emit QAbstractListModel::endInsertRows();
-#ifdef QT_QML_DEBUG
-    qDebug() << "timeTableLength " << timeTableLength;
-    qDebug() << "m_timeTable.length() " << m_timeTable.length();
-#endif
 }

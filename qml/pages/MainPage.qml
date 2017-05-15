@@ -32,6 +32,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.pendot.junat 1.0
 import harbour.pendot.timetablemodel 1.0
+//import QtSensors 5.3
 
 
 
@@ -39,6 +40,7 @@ Page {
     id: page
 
     property bool metadataVisible: true
+    property bool metadataLock: false
 
     Component.onCompleted: {
         dTimer.start()
@@ -46,11 +48,17 @@ Page {
 
     Timer {
         id: dTimer
-        interval: 1000
+        interval: 100
         repeat: false
         running: false
         onTriggered: pageStack.push(Qt.resolvedUrl("SecondPage.qml"))
     }
+
+   /* TapReading {
+        doubleTap: {
+            console.log("DoubleTapping...")
+        }
+    }*/
 
     // To enable PullDownMenu, place our content in a SilicaFlickable
     SilicaFlickable {
@@ -59,8 +67,28 @@ Page {
         // PullDownMenu and PushUpMenu must be declared in SilicaFlickable, SilicaListView or SilicaGridView
         PullDownMenu {
             MenuItem {
+                text: qsTr("Test GoTo")
+                onClicked: {
+                    if ( myListView.currentIndex == 20 ) {
+                        myListView.currentIndex = 50
+                    }
+                    else {
+                        myListView.currentIndex = 10
+                    }
+                }
+            }
+            MenuItem {
+                text: qsTr(metadataVisible ? "Metadata Lock: Off" : "Metadata Lock: On")
+                onClicked: {
+                    metadataLock = !metadataLock
+                }
+            }
+            MenuItem {
                 text: qsTr(metadataVisible ? "Hide Metadata" : "Show Metadata")
                 onClicked: {
+                    if ( metadataLock == false ) {
+                        metadataLock = true
+                    }
                     metadataVisible = !metadataVisible
                 }
             }
@@ -107,6 +135,11 @@ Page {
                 Label { text: jna.getOperatorCode }
                 Label {
                     color: Theme.highlightColor
+                    text: qsTr("Train Ready:")
+                }
+                Label { text: jna.getTrainReadyAccepted ? "True" : "False" }
+                Label {
+                    color: Theme.highlightColor
                     text: qsTr("Source:")
                 }
                 Label { text: jna.getTrainReadySource }
@@ -118,25 +151,26 @@ Page {
             }
 
             Label {
-                anchors.top: metadataVisible ? dataGrid.bottom : pageHeader.bottom
+                anchors.top: dataGrid.bottom
                 id: textTimeTable
                 x: Theme.paddingLarge
-                anchors.topMargin: metadataVisible ? Theme.paddingMedium : 0
+                visible: metadataVisible
                 text: qsTr("Timetable:")
                 color: Theme.highlightColor
             }
 
             SilicaListView {
-                anchors.top: textTimeTable.bottom
+                anchors.top: metadataVisible ? textTimeTable.bottom : pageHeader.bottom
+                anchors.topMargin: metadataVisible ? Theme.paddingLarge : 0
                 width: parent.width
-                height: metadataVisible ? parent.height - pageHeader.height - dataGrid.height- textTimeTable.height : parent.height - pageHeader.height - textTimeTable.height
+                height: metadataVisible ? parent.height - pageHeader.height - dataGrid.height- textTimeTable.height : parent.height - pageHeader.height
                 //height: Theme.paddingMedium *4 *2 * myModel.rowCount()
 
                 // this is needed so that the list elements
                 // do not overlap with other controls in column
                 clip: true
 
-                id: listView
+                id: myListView
                 //x: Theme.paddingLarge
                 model: myModel
 
@@ -252,10 +286,16 @@ Page {
                 }
                 //Label { text: actualTime + " " + differenceInMin }
 
+                onMovementEnded: {
+                    if ( !metadataLock ) {
+                        metadataVisible = (myListView.contentY > 80 ? false : true)
+                    }
+                }
+
                 Connections {
-                    target: listView.model
+                    target: myListView.model
                     onDataChanged: {
-                        listView.update()
+                        myListView.update()
                         console.log("Data Changed");
                     }
                 }

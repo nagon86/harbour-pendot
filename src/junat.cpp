@@ -123,7 +123,7 @@ void Junat::parseJSON(QNetworkReply* nReply) {
     filterTimeTable();
     emit TimeTableChanged();
 #ifdef QT_QML_DEBUG
-    qDebug() << "emit refreshGui";
+    qDebug() << "emit refreshGui " << QDateTime::currentDateTime().toString("HH:mm:ss");
 #endif
     emit refreshGui();
 }
@@ -209,7 +209,6 @@ bool Junat::storeData(QString p, QString v, QString pp, timeTableRow* t) {
             addCauseCode(t, p, v);
         }
         else if ( pp == "trainReady") {
-            qDebug() << "Train ready information. Discarding: " + p + ", " + v;
             addMetaData(p, v);
         }
     }
@@ -430,9 +429,6 @@ void Junat::setTrainNr(QString nr) {
 }
 
 int Junat::getTimeTableCount(void ) const {
-#ifdef QT_QML_DEBUG
-    qDebug() << "last timetable: " << filteredTimeTable.length() << " station: " << filteredTimeTable.at(filteredTimeTable.length()-1)->stationShortCode;
-#endif
     //return timeTableRows.length();
     return filteredTimeTable.length();
 }

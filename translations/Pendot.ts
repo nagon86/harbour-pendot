@@ -42,6 +42,14 @@
         <source>Timetable:</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Test GoTo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Train Ready:</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SecondPage</name>

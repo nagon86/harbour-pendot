@@ -37,6 +37,11 @@ CoverBackground {
         anchors.centerIn: parent
         Label {
             text: qsTr("Train Ready:")
+            color: Theme.highlightColor
+        }
+        Label {
+            horizontalAlignment: Text.AlignRight
+            text: jna.getTrainReadyAccepted ? "True" : "False"
         }
         Label {
             horizontalAlignment: Text.AlignLeft

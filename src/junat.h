@@ -56,7 +56,7 @@ public:
         //---------------
         //: Constructor :
         //---------------
-        trainReadying() : accepted(false) {}
+        trainReadying() : source("NA"), accepted(false) {}
     };
 
     explicit Junat(QObject *parent = 0);

@@ -12,6 +12,7 @@
 class TimeTableModel : public QAbstractListModel
 {
     Q_OBJECT
+
 public:
 
     enum TimeTableMembers {

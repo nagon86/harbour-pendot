@@ -39,6 +39,15 @@ Dialog {
 
     onAccepted: {
         console.log("Pages: " + pageStack.depth)
+
+        if (tmp = trainNrField.text*1) {
+            tmp = trainNrField.text*1
+        }
+        else {
+            //Notify for non integer
+            return
+        }
+
         if (tmp >= 1 && tmp < 100000) {
             jna.trainNr = tmp.toString()
             refreshTimer.interval = refreshInterval.value * 60 * 1000
@@ -63,9 +72,11 @@ Dialog {
             width: parent.width
             placeholderText: "Insert Train Number"
             label: "Train Number"
+            inputMethodHints: Qt.ImhDigitsOnly
             onFocusChanged:  {
                 if (tmp = trainNrField.text*1) {
                     tmp = trainNrField.text*1
+                    trainNrField.text = tmp
                 }
                 else {
                     //trainNrField.text = "Please insert integer"
@@ -78,7 +89,7 @@ Dialog {
             width: parent.width
             id: refreshInterval
             minimumValue: 1
-            maximumValue: 60
+            maximumValue: 15
             value: 5
             stepSize: 1
             valueText: value + " min"

@@ -32,6 +32,7 @@
 #include <QtQuick>
 #endif
 
+#include <QtQml>
 #include <sailfishapp.h>
 #include "junat.h"
 #include "timetablemodel.h"

@@ -55,6 +55,11 @@ ApplicationWindow
 
     TimeTableModel {
         id : myModel
+        Component.onCompleted: {
+            myModel.setPointer(jna.getPointer())
+            myModel.setStationPointer(stn.getStationPointer())
+            console.log("TimeTableModel onComplete");
+        }
     }
 
     Timer {
