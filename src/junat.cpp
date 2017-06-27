@@ -14,22 +14,27 @@ Junat::Junat(QObject *parent) :
     operatorUICCode(""),
     operatorShortCode("NULL"),
     trainType("NULL"),
+    timeTableType(""),
     trainCategory(""),
     commuterLineID(""),
     runningCurrently("false"),
     cancelled("false"),
-    version("0")
+    version("0"),
+    n_reply(NULL)
 {
 
     // Create class for network manager
     n_manager = new QNetworkAccessManager(this);
+    n_request = QNetworkRequest();
 
-    timetableAcceptanceDate = QDateTime::fromString("1970-01-01", "yyyy-MMM-dd");
+    timetableAcceptanceDate = QDateTime::currentDateTime();
+    lastRefreshTime = QDateTime::currentDateTime();
+    departureDate = QDateTime::currentDateTime();
     s_trainNr = "";
 
     // Connect network manager to parseJSON
-    connect(n_manager, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(parseJSON(QNetworkReply*)));
+    //connect(n_manager, SIGNAL(finished(QNetworkReply*)),
+    //        this, SLOT(parseJSON(QNetworkReply*)));
 }
 
 Junat::~Junat() {
@@ -44,6 +49,7 @@ void Junat::initData(void) {
     operatorUICCode = "";
     operatorShortCode = "";
     trainType = "";
+    timeTableType = "";
     trainCategory = "";
     commuterLineID = "";
     runningCurrently = "";
@@ -52,10 +58,19 @@ void Junat::initData(void) {
     timetableAcceptanceDate = QDateTime();
     timeTableRows.clear();
     filteredTimeTable.clear();
+    n_error = NetError();
 }
 
 void Junat::getJSON() {
-    n_manager->get(QNetworkRequest(currentUrl));
+    if ( n_reply == NULL ) {
+#ifdef QT_QML_DEBUG
+        qDebug() << "Initiating network request: " << QDateTime::currentDateTime().toString("HH:mm:ss");
+#endif
+        n_request.setUrl(currentUrl);
+        n_reply = n_manager->get(n_request);
+        connect( n_reply, SIGNAL(readyRead()), this, SLOT(parseJSON()) );
+        connect( n_reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(netError(QNetworkReply::NetworkError)) );
+    }
 }
 
 void Junat::refresData(void) {
@@ -65,9 +80,22 @@ void Junat::refresData(void) {
     getJSON();
 }
 
-void Junat::parseJSON(QNetworkReply* nReply) {
+void Junat::netError( QNetworkReply::NetworkError nErr ) {
+#ifdef QT_QML_DEBUG
+    qDebug() << QDateTime::currentDateTime().toString("HH:mm:ss") << " ...Network Error Handler... ";
+#endif
+    qDebug() << "Network error: " << nErr;
+    n_error.body = nErr;
+    n_error.summary = "Network Error";
+    n_error.previewBody = nErr;
+    n_error.previewSummary = "Network Error";
+    emit networkErrorNotification();
+}
 
-    if ( nReply->error() != QNetworkReply::NoError ) {
+//void Junat::parseJSON(QNetworkReply* nReply) {
+void Junat::parseJSON() {
+
+    if ( n_reply->error() != QNetworkReply::NoError ) {
 #ifdef QT_QML_DEBUG
         qDebug() << "Network error, waiting for next refresh cycle";
 #endif
@@ -75,7 +103,12 @@ void Junat::parseJSON(QNetworkReply* nReply) {
     }
 
     // Read data to ByteArray
-    QByteArray data = nReply->readAll();
+    QByteArray data = n_reply->readAll();
+    n_reply->deleteLater();
+    disconnect(n_reply, SIGNAL(readyRead()));
+    disconnect(n_reply, SIGNAL(error(QNetworkReply::NetworkError)));
+    n_reply = NULL;
+
     QString tmp(data);
     int bCount = 0;
 #ifdef QT_QML_DEBUG
@@ -93,11 +126,20 @@ void Junat::parseJSON(QNetworkReply* nReply) {
 
     if ( bCount != 0 ) {
 #ifdef QT_QML_DEBUG
-        qDebug() << "Invalid data: Bracket miss match.";
+        qDebug() << "Invalid data: Bracket miss match. " << tmp.length();
+        n_error.body = "Waitin for next Refresh cycle";
+        n_error.summary = "Received invalid data";
+        n_error.previewBody = "Waitin for next Refresh cycle";
+        n_error.previewSummary = "Received invalid data";
+        emit networkErrorNotification();
 #endif
         return;
     }
-
+    else {
+#ifdef QT_QML_DEBUG
+        qDebug() << "Data length: " << tmp.length();
+#endif
+    }
     if ( tmp == JSONData ) {
         // Data has not changed
     }
@@ -119,67 +161,75 @@ void Junat::parseJSON(QNetworkReply* nReply) {
         }
         // Do stuff
     }
-
+    fixCauseCodes();
     filterTimeTable();
     emit TimeTableChanged();
 #ifdef QT_QML_DEBUG
     qDebug() << "emit refreshGui " << QDateTime::currentDateTime().toString("HH:mm:ss");
 #endif
+    lastRefreshTime = QDateTime::currentDateTime();
     emit refreshGui();
 }
 
-int Junat::parseData(int index, QString prevParam) {
+int Junat::parseData() {
 
+    int index = 0;
     int bOpen = 0;
+    int timeTableLevel = 0;
     bool isValue = false;
     QString param;
     QString value;
+    QVector<QString> paramStack;
     timeTableRow tmp;
 
-    if ( JSONData.at(index) == '[' ) {
-        bOpen++;
-        index++;
-    }
-    else if ( prevParam == "trainReady") {
-        index++;
-    }
-    else {
-        // Fail?
-    }
     do {
-        if ( JSONData.at(index) == '[') {
-            index = parseData(index, param);
+        if ( JSONData.at(index) == '[' ) {
+            paramStack.push_back(param);
+            bOpen++;
+            if ( param == "timeTableRows" ) {
+                timeTableLevel = bOpen;
+            }
             param.clear();
         }
         else if ( JSONData.at(index) == ']') {
             bOpen--;
-            return index;
-        }
-        else if ( JSONData.at(index) == '{' ) {
-            bOpen++;
-        }
-        else if ( JSONData.at(index) == '}' ) {
-            storeData(param, value, prevParam, &tmp);
-            isValue = false;
-            bOpen--;
-            if ( prevParam == "timeTableRows" && bOpen == 1 ) {
+            if ( paramStack.at(paramStack.length()-1) =="timeTableRows") {
                 timeTableRows.append(tmp);
                 tmp = timeTableRow();
             }
+            paramStack.pop_back();
+        }
+        else if ( JSONData.at(index) == '{' ) {
+            if ( param.size() != 0 ) {
+                paramStack.push_back(param);
+            }
+            else {
+                paramStack.push_back(paramStack.at(paramStack.length()-1));
+            }
+            isValue = false;
+            param.clear();
+            bOpen++;
+        }
+        else if ( JSONData.at(index) == '}' ) {
+            storeData(param, value, paramStack.at(paramStack.length()-1), &tmp);
+            isValue = false;
+            paramStack.pop_back();
+            bOpen--;
             param.clear();
             value.clear();
         }
         else if ( !isValue && JSONData.at(index) == ':' ) {
-            if ( param == "trainReady") {
-                index = parseData(index, param)-1;
-                param.clear();
-            }
-            else {
-                isValue = true;
-            }
+            isValue = true;
         }
         else if ( JSONData.at(index) == ',' ) {
-            storeData(param, value, prevParam, &tmp);
+            storeData(param, value, paramStack.at(paramStack.length()-1), &tmp);
+            if ( paramStack.at(paramStack.length()-1) == "timeTableRows" && bOpen == timeTableLevel ) {
+                if ( tmp.causes.hasCause ) {
+                    qDebug() << "HAS CAUSE!";
+                }
+                timeTableRows.append(tmp);
+                tmp = timeTableRow();
+            }
             isValue = false;
             param.clear();
             value.clear();
@@ -238,6 +288,9 @@ void Junat::addMetaData(QString p, QString v) {
     else if ( p == "trainType" ) {
         trainType = v;
     }
+    else if ( p == "timeTableType" ) {
+        timeTableType = v;
+    }
     else if ( p == "trainCategory" ) {
         trainCategory = v;
     }
@@ -269,6 +322,9 @@ void Junat::addMetaData(QString p, QString v) {
     }
     else if ( p == "timestamp") {
         trainReady.timeStamp = QDateTime::fromString(v, Qt::ISODate);
+    }
+    else if ( p == "timetableType" ) {
+        timeTableType = v;
     }
     else {
 #ifdef QT_QML_DEBUG
@@ -335,6 +391,9 @@ void Junat::addTimetableParam(timeTableRow* tmp, const QString param, const QStr
         else if ( param == "differenceInMinutes" ) {
             tmp->differenceInMinutes = value.toInt();
         }
+        else if ( param == "estimateSource" ) {
+            tmp->estimateSource = value;
+        }
         else {
 #ifdef QT_QML_DEBUG
             qDebug() << "addTimetableParam: Unused param and value: " + param + " " + value;
@@ -346,22 +405,54 @@ void Junat::addCauseCode(timeTableRow* t, const QString p, const QString v) {
     if (p.isEmpty() && v.isEmpty()) {
         return;
     }
+
     if ( p == "categoryCodeId" ) {
         t->causes.categoryCodeId = v;
+        t->causes.hasCause = true;
     }
     else if ( p == "categoryCode" ) {
         t->causes.categoryCode = v;
+        t->causes.hasCause = true;
     }
     else if ( p == "detailedCategoryCodeId" ) {
         t->causes.detailedCategoryCodeId = v;
+        t->causes.hasCause = true;
     }
     else if ( p == "detailedCategoryCode" ) {
         t->causes.detailedCategoryCode = v;
+        t->causes.hasCause = true;
+    }
+    else if ( p == "thirdCategoryCode" ) {
+        t->causes.thirdCategoryCode = v;
+        t->causes.hasCause = true;
+    }
+    else if ( p == "thirdCategoryCodeId" ) {
+        t->causes.thirdCategoryCodeId = v;
+        t->causes.hasCause = true;
     }
     else {
 #ifdef QT_QML_DEBUG
         qDebug() << "addCauseCode: Unused param and value: " + p + " " + v;
 #endif
+    }
+}
+
+void Junat::fixCauseCodes(void) {
+    if ( timeTableRows.length() <= 2 ) {
+        return;
+    }
+    for ( int i = 1; i < timeTableRows.length(); i++ ) {
+        if ( timeTableRows.at(i).stationShortCode == timeTableRows.at(i-1).stationShortCode ) {
+            if ( timeTableRows.at(i).causes.hasCause && !timeTableRows.at(i-1).causes.hasCause ) {
+                timeTableRows[i-1].causes = timeTableRows[i].causes;
+            }
+            else if ( !timeTableRows.at(i).causes.hasCause && timeTableRows.at(i-1).causes.hasCause ) {
+                timeTableRows[i].causes = timeTableRows[i-1].causes;
+            }
+            else {
+                // Nothing to do
+            }
+        }
     }
 }
 
@@ -374,7 +465,7 @@ void Junat::refreshJunat() {
 
 void Junat::buildUrl(void) {
     if (s_trainNr.toInt()) {
-        currentUrl = QUrl(QString("http://rata.digitraffic.fi/api/v1/live-trains/") + s_trainNr);
+        currentUrl = QUrl(QString("https://rata.digitraffic.fi/api/v1/live-trains/") + s_trainNr);
     }
 #ifdef QT_QML_DEBUG
     qDebug() << currentUrl;
@@ -382,7 +473,10 @@ void Junat::buildUrl(void) {
     getJSON();
 }
 
-// Getters
+// -----------
+// | Getters |
+// -----------
+
 QString Junat::getTrainNr() const {
     return s_trainNr;
 }
@@ -396,6 +490,10 @@ QString Junat::getTrainType() const {
 
 QString Junat::getDepartureDate() const {
     return departureDate.toLocalTime().toString("dd-MMM-yyyy");
+}
+
+QString Junat::getLastRefreshTime() const {
+    return lastRefreshTime.toLocalTime().toString("HH:mm:ss");
 }
 
 Junat* Junat::getPointer(void) {
@@ -414,12 +512,29 @@ const Junat::timeTableRow *Junat::getTimeTableRow(int index) const {
     return filteredTimeTable.at(index);
 }
 
+QString Junat::getErrSummary(void) {
+    return n_error.summary;
+}
+
+QString Junat::getErrBody(void) {
+    return n_error.body;
+}
+
+QString Junat::getErrPrevSummary(void) {
+    return n_error.previewSummary;
+}
+
+QString Junat::getErrPrevBody(void) {
+    return n_error.previewBody;
+}
+
 // Setters
 void Junat::setTrainNr(QString nr) {
     if ( s_trainNr == nr ) {
 #ifdef QT_QML_DEBUG
-        qDebug() << "TrainNr not changed. Discarding.";
+        qDebug() << "TrainNr not changed.";
 #endif
+        refreshJunat();
     }
     else {
         s_trainNr = nr;

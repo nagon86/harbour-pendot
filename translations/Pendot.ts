@@ -31,14 +31,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Source:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Timestamp:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Timetable:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -48,6 +40,22 @@
     </message>
     <message>
         <source>Train Ready:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>   Source:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>   Timestamp:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Updated:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manual Refresh</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

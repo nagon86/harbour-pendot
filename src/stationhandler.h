@@ -7,6 +7,7 @@
 #include <QUrl>
 #include <QMultiMap>
 #include <QMap>
+#include <QFile>
 
 class StationHandler : public QObject {
     Q_OBJECT
@@ -17,6 +18,7 @@ public:
     Q_INVOKABLE QString getStationName( QString shortStationCode );
     Q_INVOKABLE StationHandler* getStationPointer(void);
     Q_INVOKABLE QString getStationCount( void ) const;
+    Q_INVOKABLE void forceRefresh( void );
 
 private:
 
@@ -33,16 +35,19 @@ private:
     };
 
     const QUrl stationURL = QUrl::fromUserInput("https://rata.digitraffic.fi/api/v1/metadata/stations");
+    const QString STATION_FILENAME = "stationlist.json";
     QString jsonStationsData;
     QMap<QString,Station> _stationList;
     QNetworkAccessManager* n_manager;
 
     // Functions
-    void getData(void);
+    void getData(bool forced = true);
+    bool readFromFile(QFile* file);
+    void parseData( void );
     void addStation(Station* s, QString p, QString v);
 
 private slots:
-    void parseData(QNetworkReply* nReply);
+    void readNetworkReply(QNetworkReply* nReply);
 };
 
 #endif // STATIONHANDLER_H

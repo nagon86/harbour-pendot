@@ -17,7 +17,8 @@ CONFIG += sailfishapp
 SOURCES += src/Pendot.cpp \
     src/junat.cpp \
     src/timetablemodel.cpp \
-    src/stationhandler.cpp
+    src/stationhandler.cpp \
+    src/logwriter.cpp
 
 OTHER_FILES += qml/Pendot.qml \
     qml/cover/CoverPage.qml \
@@ -44,8 +45,10 @@ TRANSLATIONS += translations/Pendot-de.ts
 HEADERS += \
     src/junat.h \
     src/timetablemodel.h \
-    src/stationhandler.h
+    src/stationhandler.h \
+    src/logwriter.h
 
 DISTFILES += \
-    qml/pages/MainPage.qml
+    qml/pages/MainPage.qml \
+    qml/pages/StartupPage.qml
 

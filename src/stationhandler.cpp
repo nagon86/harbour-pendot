@@ -1,6 +1,7 @@
 #include "stationhandler.h"
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QFile>
 
 StationHandler::StationHandler(QObject *parent):
     QObject(parent)
@@ -10,12 +11,18 @@ StationHandler::StationHandler(QObject *parent):
 
     // Connect network manager to parseJSON
     connect(n_manager, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(parseData(QNetworkReply*)));
+            this, SLOT(readNetworkReply(QNetworkReply*)));
     getData();
 }
 
-void StationHandler::getData( void ) {
-    n_manager->get(QNetworkRequest(stationURL));
+void StationHandler::getData( bool forced ) {
+    QFile file(STATION_FILENAME);
+    if ( !forced && readFromFile(&file) ) {
+        qDebug() << "ReadCompleted";
+    }
+    else {
+        n_manager->get(QNetworkRequest(stationURL));
+    }
 }
 
 StationHandler::~StationHandler() {
@@ -24,21 +31,94 @@ StationHandler::~StationHandler() {
     n_manager = NULL;
 }
 
+bool StationHandler::readFromFile(QFile* file) {
+    int bOpen = 0;
+    if ( !file->open(QIODevice::ReadOnly /*| QIODevice::Text*/) ) {
+        //Failed to open
+#ifdef QT_QML_DEBUG
+        qDebug() << "Failed to open file: " << file->fileName();
+#endif
+        return false;
+    }
+    else {
+#ifdef QT_QML_DEBUG
+        qDebug() << "Reading from file: " << file->fileName();
+#endif
+        jsonStationsData = file->readAll();
+        file->close();
+        if ( jsonStationsData.length() > 0 && jsonStationsData.at(0) == '[' ) {
+            for ( int i = 0; i < jsonStationsData.length(); i++ ) {
+                if ( jsonStationsData.at(i) == '[' || jsonStationsData.at(i) == '{' ) {
+                    bOpen++;
+                }
+                else if ( jsonStationsData.at(i) == ']' || jsonStationsData.at(i) == '}') {
+                    bOpen--;
+                }
+            }
+            if ( bOpen != 0 ) {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+#ifdef QT_QML_DEBUG
+        qDebug() << "Red: " << jsonStationsData.length() << " bytes.";
+#endif
+        parseData();
+    }
+    return true;
+}
 
-void StationHandler::parseData(QNetworkReply* nReply) {
+void StationHandler::forceRefresh( void ) {
+    _stationList.clear();
+    getData(true);
+}
 
+void StationHandler::readNetworkReply(QNetworkReply* nReply) {
+    int bOpen = 0;
     // Read data to ByteArray
     QByteArray data = nReply->readAll();
+    nReply->deleteLater();
 #ifdef QT_QML_DEBUG
     qDebug() << "Reading Station URL data...";
 #endif
+
+    for ( int i = 0; i < data.length(); i++ ) {
+        if ( data.at(i) == '[' || data.at(i) == '{' ) {
+            bOpen++;
+        }
+        else if ( data.at(i) == ']' || data.at(i) == '}') {
+            bOpen--;
+        }
+    }
+#ifdef QT_QML_DEBUG
+    qDebug() << "Brackets: " << bOpen << " Length: " << data.length();
+#endif
+    if ( bOpen == 0 ) {
+        jsonStationsData = data;
+        QFile file(STATION_FILENAME);
+        if ( !file.open(QIODevice::WriteOnly | QIODevice::Truncate /*| QIODevice::Text*/) ) {
+            return;
+        }
+        QTextStream in(&file);
+        in << data;
+        file.close();
+        parseData();
+    }
+}
+
+
+void StationHandler::parseData(void) {
 
     QString param;
     QString value;
     bool isValue = false;
     Station tmp;
 
-    jsonStationsData = data;
+#ifdef QT_QML_DEBUG
+    qDebug() << "Starting Station Parser...";
+#endif
 
     for ( int i = 0; i < jsonStationsData.length(); i++ ) {
         if ( jsonStationsData.at(i) == '[' || jsonStationsData.at(i) == ']' ||

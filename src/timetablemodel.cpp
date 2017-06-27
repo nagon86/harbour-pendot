@@ -36,6 +36,9 @@ QVariant TimeTableModel::data(const QModelIndex & index, int role) const {
     else if ( role == DifferenceInMin ) {
         return m_timeTable.at(index.row()).differenceInMin;
     }
+    else if ( role == HasCause ) {
+        return m_timeTable.at(index.row()).hasCause;
+    }
 #ifdef QT_QML_DEBUG
     qDebug() << "index.row() "  << index.row();
 #endif
@@ -51,6 +54,7 @@ QHash<int, QByteArray> TimeTableModel::roleNames() const {
     roles[ActualTime] = "actualTime";
     roles[EstimateTime] = "estimateTime";
     roles[DifferenceInMin] = "differenceInMin";
+    roles[HasCause] = "hasCause";
 
     return roles;
 }
@@ -72,6 +76,17 @@ void TimeTableModel::setStationPointer(StationHandler* p) {
     if ( m_stn != NULL ) {
         m_stn = p;
     }
+}
+
+int TimeTableModel::getPointers(void) {
+    int tmp = 0;
+    if ( m_stn != NULL ) {
+        tmp = tmp + 1;
+    }
+    if ( m_jna != NULL ) {
+        tmp = tmp + 2;
+    }
+    return tmp;
 }
 
 void TimeTableModel::getNewTable() {
@@ -110,6 +125,8 @@ void TimeTableModel::getNewTable() {
         else {
             tTmp.stopChar = "|";
         }
+        tTmp.hasCause = jTmp->causes.hasCause;
+
         m_timeTable.append(tTmp);
     }
 

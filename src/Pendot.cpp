@@ -33,10 +33,43 @@
 #endif
 
 #include <QtQml>
+#include <QtGlobal>
+#include <QDateTime>
+#include <QFile>
+#include <QTextStream>
 #include <sailfishapp.h>
 #include "junat.h"
 #include "timetablemodel.h"
+#include "logwriter.h"
 
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    static LogWriter log;
+    QString message;
+    QTextStream stream(&message);
+    QByteArray localMsg = msg.toLocal8Bit();
+    QByteArray timestamp = QString(QDateTime::currentDateTime().toString("HH:mm:ss")).toLocal8Bit();
+    switch (type) {
+    case QtDebugMsg:
+        stream << timestamp.constData() << " Debug: " << localMsg.constData() << " " << context.file << " " << context.line << " " << context.function << endl;
+        //fprintf(stderr, "%s Debug: %s\n", timestamp.constData(), localMsg.constData());
+        log.write(message);
+        stream.reset();
+        break;
+    case QtInfoMsg:
+        fprintf(stderr, "%s Info: %s (%s:%u, %s)\n", timestamp.constData(), localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "%s Warning: %s (%s:%u, %s)\n", timestamp.constData(), localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "%s Critical: %s (%s:%u, %s)\n", timestamp.constData(), localMsg.constData(), context.file, context.line, context.function);
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "%s Fatal: %s (%s:%u, %s)\n", timestamp.constData(), localMsg.constData(), context.file, context.line, context.function);
+        abort();
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -49,19 +82,20 @@ int main(int argc, char *argv[])
     //
     // To display the view, call "show()" (will show fullscreen on device).
 
-    //QGuiApplication app(argc, argv);
+    qInstallMessageHandler(myMessageOutput);
+
+    QScopedPointer<QGuiApplication> app(SailfishApp::application(argc, argv));
+    app->setApplicationName("pendot");
 
     qmlRegisterType<Junat>("harbour.pendot.junat",1,0,"Junat");
     qmlRegisterType<TimeTableModel>("harbour.pendot.timetablemodel",1,0,"TimeTableModel");
     qmlRegisterType<StationHandler>("harbour.pendot.stationhandler",1,0,"StationHandler");
 
-    //TimeTableModel model;
+    QScopedPointer<QQuickView> view(SailfishApp::createView());
+    view->setSource(SailfishApp::pathTo("qml/Pendot.qml"));
+    view->showFullScreen();
 
-    /*QQuickView view;
-    view.setResizeMode(QQuickView::SizeRootObjectToView);
-    QQmlContext *ctxt = view.rootContext();
-    ctxt->setContextProperty("myModel", &model);
-*/
-    return SailfishApp::main(argc, argv);
+    return app->exec();
+    //return SailfishApp::main(argc, argv);
 }
 

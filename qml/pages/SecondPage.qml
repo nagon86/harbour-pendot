@@ -30,6 +30,7 @@
 
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+//import org.nemomobile.notifications 1.0
 
 Dialog {
     id: settingsDialog
@@ -38,17 +39,17 @@ Dialog {
     property int tmp
 
     onAccepted: {
-        console.log("Pages: " + pageStack.depth)
-
         if (tmp = trainNrField.text*1) {
             tmp = trainNrField.text*1
         }
         else {
             //Notify for non integer
+            console.log("Not a number.")
             return
         }
 
         if (tmp >= 1 && tmp < 100000) {
+            refreshTimer.stop()
             jna.trainNr = tmp.toString()
             refreshTimer.interval = refreshInterval.value * 60 * 1000
             refreshTimer.start() // Restarts the timer
@@ -72,6 +73,7 @@ Dialog {
             width: parent.width
             placeholderText: "Insert Train Number"
             label: "Train Number"
+            //canPaste: false
             inputMethodHints: Qt.ImhDigitsOnly
             onFocusChanged:  {
                 if (tmp = trainNrField.text*1) {

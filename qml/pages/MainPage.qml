@@ -48,17 +48,20 @@ Page {
 
     Timer {
         id: dTimer
-        interval: 100
-        repeat: false
+        interval: 200
+        repeat: true
         running: false
-        onTriggered: pageStack.push(Qt.resolvedUrl("SecondPage.qml"))
-    }
-
-   /* TapReading {
-        doubleTap: {
-            console.log("DoubleTapping...")
+        onTriggered: {
+            if ( pageStack.busy ) {
+                console.log("Page stack busy")
+            }
+            else {
+                console.log("Pushing new page")
+                dTimer.stop()
+                pageStack.push(Qt.resolvedUrl("SecondPage.qml"))
+            }
         }
-    }*/
+    }
 
     // To enable PullDownMenu, place our content in a SilicaFlickable
     SilicaFlickable {
@@ -75,6 +78,7 @@ Page {
                     else {
                         myListView.currentIndex = 10
                     }
+                    stn.forceRefresh()
                 }
             }
             MenuItem {
@@ -90,6 +94,14 @@ Page {
                         metadataLock = true
                     }
                     metadataVisible = !metadataVisible
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Manual Refresh")
+                onClicked: {
+                    refreshTimer.start()
+                    jna.refreshJunat()
                 }
             }
 
@@ -114,6 +126,24 @@ Page {
                 id: pageHeader
                 title: jna.getTrainType + jna.trainNr
             }
+
+            Row {
+                id: refreshInfo
+                //anchors.top: parent.top
+                anchors.horizontalCenter: parent.horizontalCenter
+                x: Theme.paddingLarge
+                y: Theme.paddingMedium
+                Label {
+                    color: Theme.highlightColor
+                    text: qsTr("Updated:")
+                    font.pixelSize: Theme.fontSizeTiny
+                }
+                Label {
+                    text: jna.getLastRefreshTime
+                    font.pixelSize: Theme.fontSizeTiny
+                }
+            }
+
             Grid {
                 anchors.top: pageHeader.bottom
                 id: dataGrid
@@ -122,6 +152,12 @@ Page {
                 rowSpacing: Theme.paddingSmall / 2
                 x: Theme.paddingLarge
                 visible: metadataVisible
+
+//                Label {
+//                    color: Theme.highlightColor
+//                    text: qsTr("Updated:")
+//                }
+//                Label { text: jna.getLastRefreshTime }
 
                 Label {
                     color: Theme.highlightColor
@@ -140,12 +176,12 @@ Page {
                 Label { text: jna.getTrainReadyAccepted ? "True" : "False" }
                 Label {
                     color: Theme.highlightColor
-                    text: qsTr("Source:")
+                    text: qsTr("   Source:")
                 }
                 Label { text: jna.getTrainReadySource }
                 Label {
                     color: Theme.highlightColor
-                    text: qsTr("Timestamp:")
+                    text: qsTr("   Timestamp:")
                 }
                 Label { text: jna.getTrainReadyTime }
             }
@@ -279,6 +315,7 @@ Page {
 
                         horizontalAlignment: Text.AlignRight
                         text: differenceInMin
+                        color: hasCause ? Theme.highlightColor : Theme.primaryColor
                         font.pixelSize: Theme.fontSizeLarge
                     }
 
@@ -296,13 +333,11 @@ Page {
                     target: myListView.model
                     onDataChanged: {
                         myListView.update()
-                        console.log("Data Changed");
                     }
                 }
 
 
             }
-        //}
     }
 }
 

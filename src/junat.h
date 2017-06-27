@@ -7,6 +7,8 @@
 #include <QDateTime>
 #include <QUrl>
 #include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 
 class Junat : public QObject {
     Q_OBJECT
@@ -17,15 +19,25 @@ class Junat : public QObject {
     Q_PROPERTY(QString getTrainReadySource READ getTrainReadySource NOTIFY refreshGui)
     Q_PROPERTY(QString getTrainReadyAccepted READ getTrainReadyAccepted NOTIFY refreshGui)
     Q_PROPERTY(QString getTrainReadyTime READ getTrainReadyTime NOTIFY refreshGui)
+    Q_PROPERTY(QString getLastRefreshTime READ getLastRefreshTime NOTIFY refreshGui)
     //Q_PROPERTY(QStringList* getStationList READ getStationList NOTIFY refreshGui)
 
 
 public:
     struct cause {
+        bool hasCause;
         QString categoryCodeId;
         QString categoryCode;
         QString detailedCategoryCodeId;
         QString detailedCategoryCode;
+        QString thirdCategoryCode;
+        QString thirdCategoryCodeId;
+
+        //---------------
+        //: Constructor :
+        //---------------
+        cause() :  hasCause(false), categoryCodeId(""), categoryCode(""), detailedCategoryCodeId(""), detailedCategoryCode(""), thirdCategoryCode(""), thirdCategoryCodeId("") {
+        }
     };
 
     struct timeTableRow {
@@ -39,6 +51,7 @@ public:
         bool cancelled;
         QDateTime scheduledTime;
         QDateTime liveEstimateTime;
+        QString estimateSource;
         QDateTime actualTime;
         int differenceInMinutes;
         cause causes;
@@ -64,6 +77,10 @@ public:
     //QString get (QString url);
     Q_INVOKABLE Junat* getPointer(void);
     Q_INVOKABLE void refresData(void);
+    Q_INVOKABLE QString getErrSummary(void);
+    Q_INVOKABLE QString getErrBody(void);
+    Q_INVOKABLE QString getErrPrevSummary(void);
+    Q_INVOKABLE QString getErrPrevBody(void);
     QString getTrainNr() const;
     QString getOperatorCode() const;
     QString getTrainType() const;
@@ -71,23 +88,38 @@ public:
     QString getTrainReadySource() const;
     QString getTrainReadyAccepted() const;
     QString getTrainReadyTime() const;
+    QString getLastRefreshTime() const;
     const timeTableRow* getTimeTableRow(int index) const;
     int getTimeTableCount(void ) const;
     void setTrainNr(QString nr);
     QString s_trainNr;
 
 private:
+    struct NetError {
+        QString summary;
+        QString body;
+        QString previewSummary;
+        QString previewBody;
+        //---------------
+        //: Constructor :
+        //---------------
+        NetError() : summary("Empty Summary"), body("Empty Body"),
+            previewSummary("Empty Preview Summary"), previewBody("Empty Preview Body") {}
+    };
+
     QString trainNr;
     QDateTime departureDate;
     QString operatorUICCode;
     QString operatorShortCode;
     QString trainType;
+    QString timeTableType;
     QString trainCategory;
     QString commuterLineID;
     QString runningCurrently;
     QString cancelled;
     QString version;
     QDateTime timetableAcceptanceDate;
+    QDateTime lastRefreshTime;
     trainReadying trainReady;
     //std::vector<timeTableRow> timeTableRows;
     QVector<timeTableRow> timeTableRows;
@@ -96,6 +128,9 @@ private:
 
     QString JSONData;
     QNetworkAccessManager* n_manager;
+    QNetworkRequest n_request;
+    QNetworkReply* n_reply;
+    NetError n_error;
 
     QUrl currentUrl;
 
@@ -104,7 +139,9 @@ private:
     void setDebugData(void);
     void buildUrl(void);
     void networkError(void);
-    int parseData(int index = 0, QString prevParam = "");
+    int parseData();
+    // cause codes are usually on DEPARTURE. Copy Causes from Departure to Arrival.
+    void fixCauseCodes(void);
     //bool storeData(QString p, QString v, QString pp = "");
     bool storeData(QString p, QString v, QString pp = "", timeTableRow* t = 0);
     //bool parseMetaData();
@@ -122,6 +159,7 @@ signals:
     void NumberChanged();
     void TimeTableChanged();
     void JSONChanged();
+    void networkErrorNotification();
 
 public slots:
     void refreshJunat();
@@ -129,7 +167,9 @@ public slots:
 private slots:
     //void getJSON(QUrl url);
     void getJSON();
-    void parseJSON(QNetworkReply* nReply);
+    void netError( QNetworkReply::NetworkError nErr );
+    //void parseJSON(QNetworkReply* nReply);
+    void parseJSON();
 };
 
 #endif // JUNAT_H

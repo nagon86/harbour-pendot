@@ -21,7 +21,8 @@ public:
         ScheduledTime,
         ActualTime,
         EstimateTime,
-        DifferenceInMin
+        DifferenceInMin,
+        HasCause
     };
 
     struct TimeTable {
@@ -31,6 +32,7 @@ public:
         QString actualTime;
         QString estimateTime;
         QString differenceInMin;
+        bool hasCause;
     };
 
     TimeTableModel(QObject *parent = 0);
@@ -38,6 +40,7 @@ public:
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
     Q_INVOKABLE void setPointer(Junat* p);
     Q_INVOKABLE void setStationPointer(StationHandler* p);
+    Q_INVOKABLE int getPointers(void);
 
 protected:
     QHash<int, QByteArray> roleNames() const;
