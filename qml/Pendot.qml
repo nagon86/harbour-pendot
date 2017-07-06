@@ -61,8 +61,9 @@ ApplicationWindow
     TimeTableModel {
         id : myModel
         Component.onCompleted: {
-            myModel.setPointer(jna.getPointer())
-            myModel.setStationPointer(stn.getStationPointer())
+            //myModel.setPointer(jna.getPointer())
+            //myModel.setStationPointer(stn.getStationPointer())
+            myModel.setModelReady("true");
         }
     }
 

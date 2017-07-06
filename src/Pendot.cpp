@@ -52,7 +52,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     switch (type) {
     case QtDebugMsg:
         stream << timestamp.constData() << " Debug: " << localMsg.constData() << " " << context.file << " " << context.line << " " << context.function << endl;
-        //fprintf(stderr, "%s Debug: %s\n", timestamp.constData(), localMsg.constData());
+        fprintf(stderr, "%s Debug: %s\n", timestamp.constData(), localMsg.constData());
         log.write(message);
         stream.reset();
         break;
@@ -60,6 +60,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         fprintf(stderr, "%s Info: %s (%s:%u, %s)\n", timestamp.constData(), localMsg.constData(), context.file, context.line, context.function);
         break;
     case QtWarningMsg:
+        //fprintf(stderr, "%s Warning: %s (%s:%u, %s)\n", timestamp.constData(), localMsg.constData(), context.file, context.line, context.function);
         fprintf(stderr, "%s Warning: %s (%s:%u, %s)\n", timestamp.constData(), localMsg.constData(), context.file, context.line, context.function);
         break;
     case QtCriticalMsg:

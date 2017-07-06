@@ -34,6 +34,7 @@ private:
         double latitude; // = 64.55181651445501
     };
 
+    bool classUpdating;
     const QUrl stationURL = QUrl::fromUserInput("https://rata.digitraffic.fi/api/v1/metadata/stations");
     const QString STATION_FILENAME = "stationlist.json";
     QString jsonStationsData;
@@ -41,7 +42,7 @@ private:
     QNetworkAccessManager* n_manager;
 
     // Functions
-    void getData(bool forced = true);
+    void getData(bool forced = false);
     bool readFromFile(QFile* file);
     void parseData( void );
     void addStation(Station* s, QString p, QString v);

@@ -97,6 +97,14 @@ Dialog {
             valueText: value + " min"
             label: "Refresh interval"
         }
+        Button {
+            width: parent.width
+            id: refreshStations
+            text: "Refresh Satations"
+            onClicked: {
+                stn.forceRefresh()
+            }
+        }
     }
 }
 

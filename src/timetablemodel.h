@@ -12,6 +12,7 @@
 class TimeTableModel : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(QString modelReady READ getModelReady NOTIFY modelReadyChanged)
 
 public:
 
@@ -41,15 +42,21 @@ public:
     Q_INVOKABLE void setPointer(Junat* p);
     Q_INVOKABLE void setStationPointer(StationHandler* p);
     Q_INVOKABLE int getPointers(void);
+    QString getModelReady(void) const;
+    Q_INVOKABLE void setModelReady(QString s);
 
 protected:
     QHash<int, QByteArray> roleNames() const;
+
+signals:
+    void modelReadyChanged();
 
 private:
     QList<TimeTable> m_timeTable;
     void buildTestTable();
     Junat* m_jna;
     StationHandler* m_stn;
+    bool modelReady;
 
 public slots:
     void getNewTable();

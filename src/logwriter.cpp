@@ -1,11 +1,15 @@
 #include "logwriter.h"
 #include <QStandardPaths>
 #include <QtGlobal>
+#include <QFileInfo>
+#include <QDebug>
 
 LogWriter::LogWriter() {
-    //file = new QFile(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/" + LOG_FILENAME);
-    file = new QFile(QStandardPaths::DocumentsLocation + "\\" + LOG_FILENAME);
+    file = new QFile(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/" + LOG_FILENAME);
+    //file = new QFile(QStandardPaths::DocumentsLocation + "\\" + LOG_FILENAME);
     file->open(QIODevice::WriteOnly | QIODevice::Append);
+    QFileInfo fInfo(*file);
+    qWarning() << "Opening file: " << fInfo.absoluteFilePath().toLocal8Bit();
 }
 
 LogWriter::~LogWriter() {

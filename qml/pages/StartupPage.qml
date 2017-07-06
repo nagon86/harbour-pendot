@@ -14,13 +14,13 @@ Page {
 
     Timer {
         id: startupPoller
-        interval: 2000
+        interval: 200
         repeat: true
         onTriggered: {
             myModelPointers = myModel.getPointers()
             if ( myModelPointers === 3 ) {
-                pageStack.replace(Qt.resolvedUrl("MainPage.qml"))
                 startupPoller.stop()
+                pageStack.replace(Qt.resolvedUrl("MainPage.qml"))
             }
             else {
                 // Station model

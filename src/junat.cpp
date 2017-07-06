@@ -74,9 +74,6 @@ void Junat::getJSON() {
 }
 
 void Junat::refresData(void) {
-#ifdef QT_QML_DEBUG
-    qDebug() << "Refreshing JSON";
-#endif
     getJSON();
 }
 
@@ -89,6 +86,10 @@ void Junat::netError( QNetworkReply::NetworkError nErr ) {
     n_error.summary = "Network Error";
     n_error.previewBody = nErr;
     n_error.previewSummary = "Network Error";
+    n_reply->deleteLater();
+    disconnect(n_reply, SIGNAL(readyRead()));
+    disconnect(n_reply, SIGNAL(error(QNetworkReply::NetworkError)));
+    n_reply = NULL;
     emit networkErrorNotification();
 }
 
@@ -96,9 +97,6 @@ void Junat::netError( QNetworkReply::NetworkError nErr ) {
 void Junat::parseJSON() {
 
     if ( n_reply->error() != QNetworkReply::NoError ) {
-#ifdef QT_QML_DEBUG
-        qDebug() << "Network error, waiting for next refresh cycle";
-#endif
         return;
     }
 
@@ -111,9 +109,6 @@ void Junat::parseJSON() {
 
     QString tmp(data);
     int bCount = 0;
-#ifdef QT_QML_DEBUG
-    qDebug() << "Reading URL data...";
-#endif
 
     for ( int i = 0; i < tmp.length(); i++ ) {
         if (tmp.at(i) == '{' || tmp.at(i) == '[') {
@@ -136,9 +131,6 @@ void Junat::parseJSON() {
         return;
     }
     else {
-#ifdef QT_QML_DEBUG
-        qDebug() << "Data length: " << tmp.length();
-#endif
     }
     if ( tmp == JSONData ) {
         // Data has not changed
@@ -148,13 +140,7 @@ void Junat::parseJSON() {
 
         if (JSONData.length() > 2) {
             // Valid Response
-#ifdef QT_QML_DEBUG
-            qDebug() << "Clearing data structures.";
-#endif
             initData();
-#ifdef QT_QML_DEBUG
-            qDebug() << "Starting parser.";
-#endif
             if (parseData()) {
 
             }
@@ -225,7 +211,6 @@ int Junat::parseData() {
             storeData(param, value, paramStack.at(paramStack.length()-1), &tmp);
             if ( paramStack.at(paramStack.length()-1) == "timeTableRows" && bOpen == timeTableLevel ) {
                 if ( tmp.causes.hasCause ) {
-                    qDebug() << "HAS CAUSE!";
                 }
                 timeTableRows.append(tmp);
                 tmp = timeTableRow();
@@ -457,9 +442,6 @@ void Junat::fixCauseCodes(void) {
 }
 
 void Junat::refreshJunat() {
-#ifdef QT_QML_DEBUG
-    qDebug() << "Refreshing JSON";
-#endif
     getJSON();
 }
 
@@ -467,9 +449,6 @@ void Junat::buildUrl(void) {
     if (s_trainNr.toInt()) {
         currentUrl = QUrl(QString("https://rata.digitraffic.fi/api/v1/live-trains/") + s_trainNr);
     }
-#ifdef QT_QML_DEBUG
-    qDebug() << currentUrl;
-#endif
     getJSON();
 }
 
@@ -502,9 +481,6 @@ Junat* Junat::getPointer(void) {
 
 const Junat::timeTableRow *Junat::getTimeTableRow(int index) const {
     if ( index < 0 || index >= filteredTimeTable.length() ) {
-#ifdef QT_QML_DEBUG
-        qDebug() << "index errooor";
-#endif
         return NULL;
     }
 
@@ -531,9 +507,6 @@ QString Junat::getErrPrevBody(void) {
 // Setters
 void Junat::setTrainNr(QString nr) {
     if ( s_trainNr == nr ) {
-#ifdef QT_QML_DEBUG
-        qDebug() << "TrainNr not changed.";
-#endif
         refreshJunat();
     }
     else {

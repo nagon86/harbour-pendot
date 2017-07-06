@@ -3,6 +3,9 @@
 TimeTableModel::TimeTableModel(QObject *parent)
 {
     Q_UNUSED(parent);
+    modelReady = false;
+    m_jna = NULL;
+    m_stn = NULL;
 }
 
 int TimeTableModel::rowCount(const QModelIndex & parent) const {
@@ -12,9 +15,6 @@ int TimeTableModel::rowCount(const QModelIndex & parent) const {
 
 QVariant TimeTableModel::data(const QModelIndex & index, int role) const {
     if (index.row() < 0 || index.row() > m_timeTable.count() ) {
-#ifdef QT_QML_DEBUG
-        qDebug() << "index.row() "  << index.row();
-#endif
         return QVariant();
     }
 
@@ -39,9 +39,6 @@ QVariant TimeTableModel::data(const QModelIndex & index, int role) const {
     else if ( role == HasCause ) {
         return m_timeTable.at(index.row()).hasCause;
     }
-#ifdef QT_QML_DEBUG
-    qDebug() << "index.row() "  << index.row();
-#endif
     return QVariant();
 }
 
@@ -60,9 +57,9 @@ QHash<int, QByteArray> TimeTableModel::roleNames() const {
 }
 
 void TimeTableModel::setPointer(Junat* p) {
-    if ( m_jna != NULL ) {
+    if ( m_jna == NULL ) {
 #ifdef QT_QML_DEBUG
-        qDebug() << "Getting Pointer";
+        qDebug() << "Setting Juna Pointer";
 #endif
         QObject::connect(p, &Junat::TimeTableChanged, this, &TimeTableModel::getNewTable);
         m_jna = p;
@@ -73,7 +70,7 @@ void TimeTableModel::setPointer(Junat* p) {
 }
 
 void TimeTableModel::setStationPointer(StationHandler* p) {
-    if ( m_stn != NULL ) {
+    if ( m_stn == NULL ) {
         m_stn = p;
     }
 }
@@ -86,10 +83,12 @@ int TimeTableModel::getPointers(void) {
     if ( m_jna != NULL ) {
         tmp = tmp + 2;
     }
+    qDebug() << "Current pointers: " << tmp << " model ready: " << getModelReady();
     return tmp;
 }
 
 void TimeTableModel::getNewTable() {
+    qDebug() << "timeTableModel: getNewTable()";
     int timeTableLength = m_jna->getTimeTableCount();
     TimeTable tTmp;
 
@@ -131,4 +130,24 @@ void TimeTableModel::getNewTable() {
     }
 
     emit QAbstractListModel::endInsertRows();
+}
+
+QString TimeTableModel::getModelReady(void) const {
+    if ( modelReady ) {
+        return "true";
+    }
+    else {
+        return "false";
+    }
+}
+
+void TimeTableModel::setModelReady(QString s) {
+    if ( s.toLower() == "true" ) {
+        modelReady = true;
+    }
+    else {
+        modelReady = false;
+    }
+    qDebug() << "timeTableModel set to " << modelReady;
+    emit modelReadyChanged();
 }
