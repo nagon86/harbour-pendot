@@ -16,6 +16,10 @@ public:
     ~StationHandler();
 
     Q_INVOKABLE QString getStationName( QString shortStationCode );
+    Q_INVOKABLE QString getStationUICCode( QString shortStationCode );
+    Q_INVOKABLE QString getStationCountry( QString shortStationCode );
+    Q_INVOKABLE QString getStationLongitude( QString shortStationCode );
+    Q_INVOKABLE QString getStationLatitude( QString shortStationCode );
     Q_INVOKABLE StationHandler* getStationPointer(void);
     Q_INVOKABLE QString getStationCount( void ) const;
     Q_INVOKABLE void forceRefresh( void );
@@ -24,14 +28,14 @@ private:
 
     // https://rata.digitraffic.fi/api/v1/metadata/stations
     struct Station {
-        bool passengerTraffic; // false,
-        QString type; // "STATION",
-        QString stationName; // "Ahonpää",
-        QString stationShortCode; // "AHO",
-        QString stationUICCode; // 1343,
-        QString countryCode;// "FI",
-        double longitude; // = 25.01206612315972,
-        double latitude; // = 64.55181651445501
+        bool passengerTraffic;
+        QString type;
+        QString stationName;
+        QString stationShortCode;
+        QString stationUICCode;
+        QString countryCode;
+        double longitude;
+        double latitude;
     };
 
     bool classUpdating;

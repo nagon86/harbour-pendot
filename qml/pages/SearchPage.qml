@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-//import org.nemomobile.notifications 1.0
+import harbour.pendot.junat 1.0
+import harbour.pendot.stationhandler 1.0
+import harbour.pendot.causehandler 1.0
 
 Dialog {
     id: settingsDialog
@@ -67,12 +69,22 @@ Dialog {
             valueText: value + " min"
             label: "Refresh interval"
         }
+
         Button {
             width: parent.width
             id: refreshStations
             text: "Refresh Satations"
             onClicked: {
                 stn.forceRefresh()
+            }
+        }
+
+        Button {
+            width: parent.width
+            id: refreshCauses
+            text: "Refresh Causes"
+            onClicked: {
+                causeHandler.forceRefresh()
             }
         }
     }

@@ -12,7 +12,7 @@
 class TimeTableModel : public QAbstractListModel
 {
     Q_OBJECT
-    Q_PROPERTY(QString modelReady READ getModelReady NOTIFY modelReadyChanged)
+    //Q_PROPERTY(QString modelReady READ getModelReady NOTIFY modelReadyChanged)
 
 public:
 
@@ -23,7 +23,8 @@ public:
         ActualTime,
         EstimateTime,
         DifferenceInMin,
-        HasCause
+        HasCause,
+        AbsoluteIndex
     };
 
     struct TimeTable {
@@ -33,6 +34,7 @@ public:
         QString actualTime;
         QString estimateTime;
         QString differenceInMin;
+        int absoluteIndex;
         bool hasCause;
     };
 
@@ -41,9 +43,9 @@ public:
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
     Q_INVOKABLE void setPointer(Junat* p);
     Q_INVOKABLE void setStationPointer(StationHandler* p);
-    Q_INVOKABLE int getPointers(void);
-    QString getModelReady(void) const;
-    Q_INVOKABLE void setModelReady(QString s);
+    //Q_INVOKABLE int getPointers(void);
+    //QString getModelReady(void) const;
+    //Q_INVOKABLE void setModelReady(QString s);
 
 protected:
     QHash<int, QByteArray> roleNames() const;
@@ -56,7 +58,7 @@ private:
     void buildTestTable();
     Junat* m_jna;
     StationHandler* m_stn;
-    bool modelReady;
+    //bool modelReady;
 
 public slots:
     void getNewTable();

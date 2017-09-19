@@ -15,7 +15,6 @@ StationHandler::StationHandler(QObject *parent):
     // Connect network manager to parseJSON
     connect(n_manager, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(readNetworkReply(QNetworkReply*)));
-    //getData();
 }
 
 void StationHandler::getData( bool forced ) {
@@ -26,11 +25,9 @@ void StationHandler::getData( bool forced ) {
     classUpdating = true;
     QFile file(STATION_FILENAME);
     if ( !forced && readFromFile(&file) ) {
-        qDebug() << "ReadCompleted";
         classUpdating = false;
     }
     else {
-        qDebug() << "GetStationFromNetwork";
         n_manager->get(QNetworkRequest(stationURL));
     }
 }
@@ -51,9 +48,6 @@ bool StationHandler::readFromFile(QFile* file) {
         return false;
     }
     else {
-#ifdef QT_QML_DEBUG
-        qDebug() << "Reading from file: " << file->fileName();
-#endif
         jsonStationsData = file->readAll();
         file->close();
         if ( jsonStationsData.length() > 0 && jsonStationsData.at(0) == '[' ) {
@@ -72,9 +66,6 @@ bool StationHandler::readFromFile(QFile* file) {
         else {
             return false;
         }
-#ifdef QT_QML_DEBUG
-        qDebug() << "Red: " << jsonStationsData.length() << " bytes.";
-#endif
         parseData();
     }
     return true;
@@ -87,13 +78,8 @@ void StationHandler::forceRefresh( void ) {
 
 void StationHandler::readNetworkReply(QNetworkReply* nReply) {
     int bOpen = 0;
-    // Read data to ByteArray
-    //QByteArray data = nReply->readAll();
     QString data = nReply->readAll();
     nReply->deleteLater();
-#ifdef QT_QML_DEBUG
-    qDebug() << "Reading Station URL data...";
-#endif
 
     for ( int i = 0; i < data.length(); i++ ) {
         if ( data.at(i) == '[' || data.at(i) == '{' ) {
@@ -112,9 +98,8 @@ void StationHandler::readNetworkReply(QNetworkReply* nReply) {
         }
         QTextStream in(&file);
         in.setAutoDetectUnicode(true);
-        //in.setCodec(QTextCodec::codecFromName("ISO 8859-1"));
-        //in.setCodec(QTextCodec::codecForName("ISO 8859-1"));
         in << data;
+        file.flush();
         file.close();
         parseData();
         classUpdating = false;
@@ -141,7 +126,6 @@ void StationHandler::parseData(void) {
             tmp = Station();
             param.clear();
             value.clear();
-            // Add to map
         }
         else if ( jsonStationsData.at(i) == ':' ) {
             if ( !isValue ) {
@@ -212,6 +196,38 @@ QString StationHandler::getStationName( QString shortStationCode ) {
         return shortStationCode;
     }
     return iter->stationName;
+}
+
+QString StationHandler::getStationUICCode( QString shortStationCode ) {
+    QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
+    if ( iter == _stationList.end() ) {
+        return shortStationCode;
+    }
+    return iter->stationUICCode;
+}
+
+QString StationHandler::getStationCountry( QString shortStationCode ) {
+    QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
+    if ( iter == _stationList.end() ) {
+        return shortStationCode;
+    }
+    return iter->countryCode;
+}
+
+QString StationHandler::getStationLongitude( QString shortStationCode ) {
+    QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
+    if ( iter == _stationList.end() ) {
+        return shortStationCode;
+    }
+    return QString::number(iter->longitude);
+}
+
+QString StationHandler::getStationLatitude( QString shortStationCode ) {
+    QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
+    if ( iter == _stationList.end() ) {
+        return shortStationCode;
+    }
+    return QString::number(iter->latitude);
 }
 
 QString StationHandler::getStationCount( void ) const {

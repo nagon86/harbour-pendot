@@ -10,7 +10,6 @@
 Junat::Junat(QObject *parent) :
     QObject(parent),
     trainNr("0"),
-    //departureDate(""),
     operatorUICCode(""),
     operatorShortCode("NULL"),
     trainType("NULL"),
@@ -31,10 +30,6 @@ Junat::Junat(QObject *parent) :
     lastRefreshTime = QDateTime::currentDateTime();
     departureDate = QDateTime::currentDateTime();
     s_trainNr = "";
-
-    // Connect network manager to parseJSON
-    //connect(n_manager, SIGNAL(finished(QNetworkReply*)),
-    //        this, SLOT(parseJSON(QNetworkReply*)));
 }
 
 Junat::~Junat() {
@@ -93,7 +88,6 @@ void Junat::netError( QNetworkReply::NetworkError nErr ) {
     emit networkErrorNotification();
 }
 
-//void Junat::parseJSON(QNetworkReply* nReply) {
 void Junat::parseJSON() {
 
     if ( n_reply->error() != QNetworkReply::NoError ) {
@@ -101,13 +95,12 @@ void Junat::parseJSON() {
     }
 
     // Read data to ByteArray
-    QByteArray data = n_reply->readAll();
+    QString tmp = n_reply->readAll();
     n_reply->deleteLater();
     disconnect(n_reply, SIGNAL(readyRead()));
     disconnect(n_reply, SIGNAL(error(QNetworkReply::NetworkError)));
     n_reply = NULL;
 
-    QString tmp(data);
     int bCount = 0;
 
     for ( int i = 0; i < tmp.length(); i++ ) {
@@ -145,9 +138,9 @@ void Junat::parseJSON() {
 
             }
         }
-        // Do stuff
     }
     fixCauseCodes();
+    fixActualTimes();
     filterTimeTable();
     emit TimeTableChanged();
 #ifdef QT_QML_DEBUG
@@ -212,6 +205,7 @@ int Junat::parseData() {
             if ( paramStack.at(paramStack.length()-1) == "timeTableRows" && bOpen == timeTableLevel ) {
                 if ( tmp.causes.hasCause ) {
                 }
+                tmp.absoluteIndex = timeTableRows.length();
                 timeTableRows.append(tmp);
                 tmp = timeTableRow();
             }
@@ -441,6 +435,20 @@ void Junat::fixCauseCodes(void) {
     }
 }
 
+void Junat::fixActualTimes(void) {
+    bool isActual = false;
+    for ( int i = timeTableRows.length()-1; i >= 0; i-- ) {
+        if ( !isActual ) {
+            isActual = !timeTableRows.at(i).actualTime.isNull();
+        }
+        else {
+            if ( timeTableRows.at(i).actualTime.isNull() ) {
+                timeTableRows[i].actualTime = timeTableRows.at(i).liveEstimateTime;
+            }
+        }
+    }
+}
+
 void Junat::refreshJunat() {
     getJSON();
 }
@@ -483,8 +491,6 @@ const Junat::timeTableRow *Junat::getTimeTableRow(int index) const {
     if ( index < 0 || index >= filteredTimeTable.length() ) {
         return NULL;
     }
-
-    //return &timeTableRows.at(index);
     return filteredTimeTable.at(index);
 }
 
@@ -517,7 +523,6 @@ void Junat::setTrainNr(QString nr) {
 }
 
 int Junat::getTimeTableCount(void ) const {
-    //return timeTableRows.length();
     return filteredTimeTable.length();
 }
 
@@ -553,4 +558,33 @@ QString Junat::getTrainReadyAccepted() const {
 
 QString Junat::getTrainReadyTime() const {
     return trainReady.timeStamp.toLocalTime().toString("HH:mm:ss");
+}
+
+QString Junat::getStationName(int index) const {
+    return timeTableRows.at(index).stationShortCode;
+}
+
+bool Junat::stopHasCause(int index) const {
+    return timeTableRows.at(index).causes.hasCause;
+}
+
+QString Junat::getStopCauseCode(int index) const {
+    if ( timeTableRows.at(index).causes.categoryCode.isEmpty() ) {
+        return "NULL";
+    }
+    return timeTableRows.at(index).causes.categoryCode;
+}
+
+QString Junat::getStopDetailedCauseCode(int index) const {
+    if ( timeTableRows.at(index).causes.detailedCategoryCode.isEmpty() ) {
+        return "NULL";
+    }
+    return timeTableRows.at(index).causes.detailedCategoryCode;
+}
+
+QString Junat::getStopThirdCauseCode(int index) const {
+    if ( timeTableRows.at(index).causes.thirdCategoryCode.isEmpty() ) {
+        return "NULL";
+    }
+    return timeTableRows.at(index).causes.thirdCategoryCode;
 }

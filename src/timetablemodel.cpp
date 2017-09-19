@@ -3,7 +3,7 @@
 TimeTableModel::TimeTableModel(QObject *parent)
 {
     Q_UNUSED(parent);
-    modelReady = false;
+    //modelReady = false;
     m_jna = NULL;
     m_stn = NULL;
 }
@@ -39,6 +39,9 @@ QVariant TimeTableModel::data(const QModelIndex & index, int role) const {
     else if ( role == HasCause ) {
         return m_timeTable.at(index.row()).hasCause;
     }
+    else if ( role == AbsoluteIndex ) {
+        return m_timeTable.at(index.row()).absoluteIndex;
+    }
     return QVariant();
 }
 
@@ -52,20 +55,15 @@ QHash<int, QByteArray> TimeTableModel::roleNames() const {
     roles[EstimateTime] = "estimateTime";
     roles[DifferenceInMin] = "differenceInMin";
     roles[HasCause] = "hasCause";
+    roles[AbsoluteIndex] = "absoluteIndex";
 
     return roles;
 }
 
 void TimeTableModel::setPointer(Junat* p) {
     if ( m_jna == NULL ) {
-#ifdef QT_QML_DEBUG
-        qDebug() << "Setting Juna Pointer";
-#endif
         QObject::connect(p, &Junat::TimeTableChanged, this, &TimeTableModel::getNewTable);
         m_jna = p;
-#ifdef QT_QML_DEBUG
-        qDebug() << "Pointer: " << m_jna->getTrainNr();
-#endif
     }
 }
 
@@ -75,6 +73,7 @@ void TimeTableModel::setStationPointer(StationHandler* p) {
     }
 }
 
+/*
 int TimeTableModel::getPointers(void) {
     int tmp = 0;
     if ( m_stn != NULL ) {
@@ -83,12 +82,10 @@ int TimeTableModel::getPointers(void) {
     if ( m_jna != NULL ) {
         tmp = tmp + 2;
     }
-    qDebug() << "Current pointers: " << tmp << " model ready: " << getModelReady();
     return tmp;
-}
+}*/
 
 void TimeTableModel::getNewTable() {
-    qDebug() << "timeTableModel: getNewTable()";
     int timeTableLength = m_jna->getTimeTableCount();
     TimeTable tTmp;
 
@@ -125,6 +122,7 @@ void TimeTableModel::getNewTable() {
             tTmp.stopChar = "|";
         }
         tTmp.hasCause = jTmp->causes.hasCause;
+        tTmp.absoluteIndex = jTmp->absoluteIndex;
 
         m_timeTable.append(tTmp);
     }
@@ -132,6 +130,7 @@ void TimeTableModel::getNewTable() {
     emit QAbstractListModel::endInsertRows();
 }
 
+/*
 QString TimeTableModel::getModelReady(void) const {
     if ( modelReady ) {
         return "true";
@@ -139,8 +138,9 @@ QString TimeTableModel::getModelReady(void) const {
     else {
         return "false";
     }
-}
+}*/
 
+/*
 void TimeTableModel::setModelReady(QString s) {
     if ( s.toLower() == "true" ) {
         modelReady = true;
@@ -151,3 +151,4 @@ void TimeTableModel::setModelReady(QString s) {
     qDebug() << "timeTableModel set to " << modelReady;
     emit modelReadyChanged();
 }
+*/

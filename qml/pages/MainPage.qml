@@ -22,13 +22,13 @@ Page {
         repeat: true
         running: false
         onTriggered: {
-            if ( pageStack.busy ) {
-                console.log("Page stack busy")
+            if ( pageStack.busy ) {                
+                //console.log("Page stack busy")
             }
             else {
-                console.log("Pushing new page")
+                //console.log("Pushing new page")
                 dTimer.stop()
-                pageStack.push(Qt.resolvedUrl("SecondPage.qml"))
+                pageStack.push(Qt.resolvedUrl("SearchPage.qml"))
             }
         }
     }
@@ -86,11 +86,6 @@ Page {
 
         // Place our content in a Column.  The PageHeader is always placed at the top
         // of the page, followed by our content.
-        /*Column {
-            id: column
-
-            width: page.width
-            spacing: Theme.paddingLarge*/
             PageHeader {
                 anchors.top: parent.top
                 id: pageHeader
@@ -99,7 +94,6 @@ Page {
 
             Row {
                 id: refreshInfo
-                //anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
                 x: Theme.paddingLarge
                 y: Theme.paddingMedium
@@ -122,12 +116,6 @@ Page {
                 rowSpacing: Theme.paddingSmall / 2
                 x: Theme.paddingLarge
                 visible: metadataVisible
-
-//                Label {
-//                    color: Theme.highlightColor
-//                    text: qsTr("Updated:")
-//                }
-//                Label { text: jna.getLastRefreshTime }
 
                 Label {
                     color: Theme.highlightColor
@@ -170,14 +158,12 @@ Page {
                 anchors.topMargin: metadataVisible ? Theme.paddingLarge : 0
                 width: parent.width
                 height: metadataVisible ? parent.height - pageHeader.height - dataGrid.height- textTimeTable.height : parent.height - pageHeader.height
-                //height: Theme.paddingMedium *4 *2 * myModel.rowCount()
 
                 // this is needed so that the list elements
                 // do not overlap with other controls in column
                 clip: true
 
                 id: myListView
-                //x: Theme.paddingLarge
                 model: myModel
 
                 VerticalScrollDecorator {}
@@ -197,15 +183,22 @@ Page {
                         height: parent.height
 
                         color: Theme.primaryColor
-                        opacity: 0.05
-                        visible: !(index & 1)
+                        opacity: !(index & 1) ? 0.05 : 0.00
+                        //opacity: 0.05
+                        //visible: !(index & 1)
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                pageStack.push(Qt.resolvedUrl("StationDetails.qml"), { absoluteIndex: absoluteIndex })
+                            }
+                        }
                     }
 
                     Label {
                         id: ifStop
                         x: Theme.paddingLarge
                         y: Theme.paddingMedium
-                        //anchors.verticalCenter: parent.verticalCenter
                         anchors.rightMargin: Theme.paddingMedium
                         horizontalAlignment: Label.AlignHCenter
 
@@ -225,16 +218,13 @@ Page {
                         anchors.left: ifStop.right
                         anchors.leftMargin: Theme.paddingMedium
                         anchors.rightMargin: Theme.paddingMedium
-                        //anchors.verticalCenter: differenceInMin == 0 ? parent.verticalCenter : parent.Top
                         horizontalAlignment: Label.AlignHCenter
                         verticalAlignment: Label.AlignHCenter
 
                         width: Theme.paddingSmall * 15
                         height: Theme.paddingSmall * 6
 
-                        //text: scheduledTime
                         text: differenceInMin == 0 ? scheduledTime : actualTime != "" ? actualTime : estimateTime
-                        //font.pixelSize: differenceInMin == 0 ? Theme.fontSizeLarge : Theme.fontSizeLarge / 4 * 3
                         font.pixelSize: Theme.fontSizeLarge
                     }
                     Label {
@@ -248,12 +238,10 @@ Page {
 
                         width: timeMain.width
                         height: timeMain.height
-                        //font.pixelSize: Theme.fontSizeSmall / 4
-                        //text: actualTime != "" ? actualTime : estimateTime
                         text: differenceInMin == 0 ? "" : scheduledTime
                         font.pixelSize: differenceInMin == 0 ? Theme.fontSizeLarge/2 : Theme.fontSizeLarge / 2
                         font.strikeout: true
-                        visible: true//differenceInMin == 0 ? false : true
+                        visible: true
                     }
                     Label {
                         id: station
@@ -264,7 +252,6 @@ Page {
                         anchors.leftMargin: Theme.paddingMedium
                         anchors.rightMargin: Theme.paddingMedium
                         horizontalAlignment: Label.AlignLeft
-                        //anchors.verticalCenter: parent.verticalCenter
 
                         width: Theme.paddingSmall * 25
                         height: Theme.paddingSmall * 6
@@ -288,10 +275,7 @@ Page {
                         color: hasCause ? Theme.highlightColor : Theme.primaryColor
                         font.pixelSize: Theme.fontSizeLarge
                     }
-
-                    //text: fillerChar + " " + stationName + " " + scheduledTime + " " + differenceInMin
                 }
-                //Label { text: actualTime + " " + differenceInMin }
 
                 onMovementEnded: {
                     if ( !metadataLock ) {

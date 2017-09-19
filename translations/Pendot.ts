@@ -60,9 +60,84 @@
     </message>
 </context>
 <context>
-    <name>SecondPage</name>
+    <name>SearchPage</name>
     <message>
         <source>Search Page</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>StationDetails</name>
+    <message>
+        <source>Details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Name: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Short code: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>UIC Code: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Country: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Longitude: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Latitude: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Detailed Cause Code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Third Cause Code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No Causes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cause Codes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Category Code: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Category Name: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Passenger Term: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fi: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>En: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Se: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Code: </source>
         <translation type="unfinished"></translation>
     </message>
 </context>

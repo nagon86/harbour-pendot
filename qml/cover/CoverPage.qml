@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import harbour.pendot.junat 1.0
 
 CoverBackground {
     Column {
@@ -40,7 +41,8 @@ CoverBackground {
         }
 
         CoverAction {
-            iconSource: "image://theme/icon-cover-pause"
+            iconSource: "image://theme/icon-cover-refresh"
+            onTriggered: jna.refreshJunat()
         }
     }
 }

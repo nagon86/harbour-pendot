@@ -18,12 +18,12 @@ SOURCES += src/Pendot.cpp \
     src/junat.cpp \
     src/timetablemodel.cpp \
     src/stationhandler.cpp \
-    src/logwriter.cpp
+    src/logwriter.cpp \
+    src/causehandler.cpp
 
 OTHER_FILES += qml/Pendot.qml \
     qml/cover/CoverPage.qml \
     qml/pages/FirstPage.qml \
-    qml/pages/SecondPage.qml \
     rpm/Pendot.changes.in \
     rpm/Pendot.spec \
     rpm/Pendot.yaml \
@@ -46,9 +46,11 @@ HEADERS += \
     src/junat.h \
     src/timetablemodel.h \
     src/stationhandler.h \
-    src/logwriter.h
+    src/logwriter.h \
+    src/causehandler.h
 
 DISTFILES += \
     qml/pages/MainPage.qml \
-    qml/pages/StartupPage.qml
+    qml/pages/SearchPage.qml \
+    qml/pages/StationDetails.qml
 

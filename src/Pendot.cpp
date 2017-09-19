@@ -11,7 +11,9 @@
 #include "junat.h"
 #include "timetablemodel.h"
 #include "logwriter.h"
+#include "causehandler.h"
 
+#ifdef QT_QML_DEBUG
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     static LogWriter log;
@@ -41,10 +43,13 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         abort();
     }
 }
+#endif
 
 int main(int argc, char *argv[])
 {
+#ifdef QT_QML_DEBUG
     qInstallMessageHandler(myMessageOutput);
+#endif
 
     QScopedPointer<QGuiApplication> app(SailfishApp::application(argc, argv));
     app->setApplicationName("pendot");
@@ -52,6 +57,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<Junat>("harbour.pendot.junat",1,0,"Junat");
     qmlRegisterType<TimeTableModel>("harbour.pendot.timetablemodel",1,0,"TimeTableModel");
     qmlRegisterType<StationHandler>("harbour.pendot.stationhandler",1,0,"StationHandler");
+    qmlRegisterType<causehandler>("harbour.pendot.causehandler",1,0,"CauseHandler");
 
     QScopedPointer<QQuickView> view(SailfishApp::createView());
     view->setSource(SailfishApp::pathTo("qml/Pendot.qml"));
@@ -59,4 +65,3 @@ int main(int argc, char *argv[])
 
     return app->exec();
 }
-

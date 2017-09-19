@@ -4,6 +4,7 @@ import org.nemomobile.notifications 1.0
 import harbour.pendot.junat 1.0
 import harbour.pendot.timetablemodel 1.0
 import harbour.pendot.stationhandler 1.0
+import harbour.pendot.causehandler 1.0
 
 import "pages"
 
@@ -28,12 +29,15 @@ ApplicationWindow
         }
     }
 
+    CauseHandler {
+        id : causeHandler
+    }
+
     TimeTableModel {
         id : myModel
         Component.onCompleted: {
-            //myModel.setPointer(jna.getPointer())
-            //myModel.setStationPointer(stn.getStationPointer())
-            myModel.setModelReady("true");
+            myModel.setPointer(jna.getPointer())
+            myModel.setStationPointer(stn.getStationPointer())
         }
     }
 
@@ -81,9 +85,9 @@ ApplicationWindow
             notification.publish()
             console.log("onErrorNotification")
         }
-        //onRefereshGui: {
-        //    notification.close()
-        //}
+        onRefereshGui: {
+            notification.close()
+        }
     }
 
     Timer {
