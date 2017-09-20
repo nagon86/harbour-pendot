@@ -309,5 +309,9 @@ QString causehandler::getDescription( QString id ) {
     if ( iter == causeList.end() ) {
         return "Not Found";
     }
+    if ( iter->description.isEmpty() ) {
+        return "NULL";
+    }
+
     return iter->description;
 }

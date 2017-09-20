@@ -12,7 +12,7 @@ Page {
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: detailsColumn.height
+        contentHeight: detailsColumn.height + detailPageHeader.height
 
         VerticalScrollDecorator {}
 
@@ -163,9 +163,17 @@ Page {
                     }
                 }
 
-                /***************************
+            /***************************
              * Detailed Cause Category *
              ***************************/
+
+                // Additional spacing
+                Rectangle {
+                    height: Theme.paddingLarge
+                    width: parent.width
+                    color: Theme.primaryColor
+                    opacity: 0.01
+                }
 
                 Label {
                     //x: Theme.paddingLarge
@@ -247,8 +255,14 @@ Page {
                 }
 
                 /***************************
-             * Detailed Cause Category *
+             * Third Cause Category *
              ***************************/
+
+                // Additional spacing
+                Rectangle {
+                    height: Theme.paddingLarge
+                    opacity: 0
+                }
 
                 Label {
                     //x: Theme.paddingLarge
@@ -285,6 +299,35 @@ Page {
                         wrapMode: Text.Wrap
                         text: causeHandler.getName(jna.getStopThirdCauseCode(absoluteIndex))
                     }
+//                    Label {
+//                        id: thirdDescr
+//                        color: Theme.highlightColor
+//                        text: qsTr("Description: ")
+//                        visible: causeHandler.getDescription(jna.getStopThirdCauseCode(absoluteIndex)) != "NULL"
+//                    }
+//                    Text {
+//                        width: stationDetailsPage.width - thirdDescr.width - Theme.paddingLarge * 2
+//                        color: Theme.primaryColor
+//                        wrapMode: Text.Wrap
+//                        text: causeHandler.getDescription(jna.getStopThirdCauseCode(absoluteIndex))
+//                        visible: causeHandler.getDescription(jna.getStopThirdCauseCode(absoluteIndex)) != "NULL"
+//                    }
+                }
+
+                Label {
+                    id: thirdDescr
+                    x: Theme.paddingLarge
+                    color: Theme.highlightColor
+                    text: qsTr("Description: ")
+                    visible: causeHandler.getDescription(jna.getStopThirdCauseCode(absoluteIndex)) != "NULL"
+                }
+                Text {
+                    x: Theme.paddingLarge * 2
+                    width: parent.width - Theme.paddingLarge * 3
+                    color: Theme.primaryColor
+                    wrapMode: Text.Wrap
+                    text: causeHandler.getDescription(jna.getStopThirdCauseCode(absoluteIndex))
+                    visible: causeHandler.getDescription(jna.getStopThirdCauseCode(absoluteIndex)) != "NULL"
                 }
 
                 Label {
