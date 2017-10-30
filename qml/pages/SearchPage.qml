@@ -33,7 +33,7 @@ Dialog {
 
     Column {
         id: optionsContainer
-        width: parent.width
+        anchors.fill: parent
 
         DialogHeader {
             id: dialogHeader
@@ -70,8 +70,13 @@ Dialog {
             label: "Refresh interval"
         }
 
+        SectionHeader {
+            text: "Force Refresh"
+        }
+
         Button {
-            width: parent.width
+            width: parent.width - Theme.paddingLarge*2
+            x: Theme.paddingLarge
             id: refreshStations
             text: "Refresh Satations"
             onClicked: {
@@ -79,8 +84,15 @@ Dialog {
             }
         }
 
-        Button {
+        Rectangle {
             width: parent.width
+            height: Theme.paddingMedium
+            opacity: 0.00
+        }
+
+        Button {
+            width: parent.width - Theme.paddingLarge*2
+            x: Theme.paddingLarge
             id: refreshCauses
             text: "Refresh Causes"
             onClicked: {

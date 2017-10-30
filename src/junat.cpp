@@ -26,6 +26,10 @@ Junat::Junat(QObject *parent) :
     n_manager = new QNetworkAccessManager(this);
     n_request = QNetworkRequest();
 
+    retryTimer = new QTimer(this);
+    retryTimer->setSingleShot(true);
+    connect(retryTimer, SIGNAL(timeout()), this, SLOT(retryGetUrl()));
+
     timetableAcceptanceDate = QDateTime::currentDateTime();
     lastRefreshTime = QDateTime::currentDateTime();
     departureDate = QDateTime::currentDateTime();
@@ -88,9 +92,32 @@ void Junat::netError( QNetworkReply::NetworkError nErr ) {
     emit networkErrorNotification();
 }
 
+void Junat::startRetryTimer(void) {
+    retryTimer->start(3000); // Start timer with 3s timeout
+}
+
+void Junat::retryGetUrl() {
+#ifdef QT_QML_DEBUG
+    qDebug() << "retryGetUrl: " << QDateTime::currentDateTime().toString("HH:mm:ss");
+#endif
+    if ( retryCount >= MAX_RETRY_COUNT ) {
+        retryCount = 0;
+        return;
+    }
+    else {
+        retryCount++;
+        getJSON();
+    }
+}
+
 void Junat::parseJSON() {
 
     if ( n_reply->error() != QNetworkReply::NoError ) {
+        startRetryTimer();
+        n_reply->deleteLater();
+        disconnect(n_reply, SIGNAL(readyRead()));
+        disconnect(n_reply, SIGNAL(error(QNetworkReply::NetworkError)));
+        n_reply = NULL;
         return;
     }
 
@@ -121,6 +148,7 @@ void Junat::parseJSON() {
         n_error.previewSummary = "Received invalid data";
         emit networkErrorNotification();
 #endif
+        startRetryTimer();
         return;
     }
     else {
@@ -147,6 +175,7 @@ void Junat::parseJSON() {
     qDebug() << "emit refreshGui " << QDateTime::currentDateTime().toString("HH:mm:ss");
 #endif
     lastRefreshTime = QDateTime::currentDateTime();
+    retryCount = 0;
     emit refreshGui();
 }
 

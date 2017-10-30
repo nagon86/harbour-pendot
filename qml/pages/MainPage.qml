@@ -48,7 +48,6 @@ Page {
                     else {
                         myListView.currentIndex = 10
                     }
-                    stn.forceRefresh()
                 }
             }
             MenuItem {
@@ -77,7 +76,7 @@ Page {
 
             MenuItem {
                 text: qsTr("Search")
-                onClicked: pageStack.push(Qt.resolvedUrl("SecondPage.qml"))
+                onClicked: pageStack.push(Qt.resolvedUrl("SearchPage.qml"))
             }
         }
 

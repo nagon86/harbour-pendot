@@ -113,14 +113,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Category Code: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Category Name: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Passenger Term: </source>
         <translation type="unfinished"></translation>
     </message>

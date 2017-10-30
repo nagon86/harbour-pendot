@@ -5,6 +5,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QTextStream>
+#include <QTextCodec>
 
 causehandler::causehandler(QObject *parent) : QObject(parent) {
     getCauseData();
@@ -168,7 +169,7 @@ bool causehandler::readFromFile( FileType filetype ) {
     if (!file.exists()) {
         return false;
     }
-    if ( file.open(QIODevice::ReadOnly | QIODevice::Text) ) {
+    if ( !file.open(QIODevice::ReadOnly | QIODevice::Text) ) {
         return false;
     }
     jsonData = file.readAll();
@@ -193,11 +194,12 @@ bool causehandler::writeToFile( FileType filetype ) {
     }
 
     QFile file(filename);
-    if ( file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text) ) {
+    if ( !file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text) ) {
         return false;
     }
 
     QTextStream in(&file);
+    in.setCodec(QTextCodec::codecForName("UTF-8"));
     in.setAutoDetectUnicode(true);
     in << jsonData;
     file.flush();

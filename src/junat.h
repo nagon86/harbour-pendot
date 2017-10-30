@@ -5,6 +5,7 @@
 #include <QString>
 #include <QVector>
 #include <QDateTime>
+#include <QTimer>
 #include <QUrl>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -138,11 +139,16 @@ private:
 
     QUrl currentUrl;
 
+    QTimer* retryTimer;
+    int retryCount;
+    const int MAX_RETRY_COUNT = 3;
+
     // Functions
     void initData(void);
     void setDebugData(void);
     void buildUrl(void);
     void networkError(void);
+    void startRetryTimer(void);
     int parseData();
     // cause codes are usually on DEPARTURE. Copy Causes from Departure to Arrival.
     void fixCauseCodes(void);
@@ -153,6 +159,8 @@ private:
     void addTimetableParam(timeTableRow* tmp, const QString param, const QString value);
     void addCauseCode(timeTableRow* t, const QString p, const QString v);
     QString isoDateWithMsToISODate(QString s);
+
+
 
     void filterTimeTable(QString type = "ARRIVAL");
 
@@ -169,6 +177,7 @@ public slots:
 private slots:
     void getJSON();
     void netError( QNetworkReply::NetworkError nErr );
+    void retryGetUrl();
     void parseJSON();
 };
 

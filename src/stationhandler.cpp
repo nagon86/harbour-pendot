@@ -48,6 +48,7 @@ bool StationHandler::readFromFile(QFile* file) {
         return false;
     }
     else {
+        qDebug() << "Opened file: " << file->fileName();
         jsonStationsData = file->readAll();
         file->close();
         if ( jsonStationsData.length() > 0 && jsonStationsData.at(0) == '[' ) {
@@ -97,7 +98,7 @@ void StationHandler::readNetworkReply(QNetworkReply* nReply) {
             return;
         }
         QTextStream in(&file);
-        in.setAutoDetectUnicode(true);
+        in.setCodec(QTextCodec::codecForName("UTF-8"));;
         in << data;
         file.flush();
         file.close();
