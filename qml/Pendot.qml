@@ -85,9 +85,10 @@ ApplicationWindow
             notification.publish()
             console.log("onErrorNotification")
         }
-        onRefereshGui: {
+        //onRefereshGui: {
+        /*onClosing: {
             notification.close()
-        }
+        }*/
     }
 
     Timer {

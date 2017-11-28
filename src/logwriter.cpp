@@ -4,8 +4,11 @@
 #include <QFileInfo>
 #include <QDebug>
 
+// simple class to handle logging
+
 LogWriter::LogWriter() {
-    file = new QFile(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/" + LOG_FILENAME);
+    //file = new QFile(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/" + LOG_FILENAME);
+    file = new QFile(STORAGE_FOLDER + "/" + LOG_FILENAME);
     file->open(QIODevice::WriteOnly | QIODevice::Append);
     QFileInfo fInfo(*file);
     qWarning() << "Opening file: " << fInfo.absoluteFilePath().toLocal8Bit();

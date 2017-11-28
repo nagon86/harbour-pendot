@@ -21,6 +21,7 @@ class Junat : public QObject {
     Q_PROPERTY(QString getTrainReadyAccepted READ getTrainReadyAccepted NOTIFY refreshGui)
     Q_PROPERTY(QString getTrainReadyTime READ getTrainReadyTime NOTIFY refreshGui)
     Q_PROPERTY(QString getLastRefreshTime READ getLastRefreshTime NOTIFY refreshGui)
+    Q_PROPERTY(int getCurrentStation READ getCurrentStation NOTIFY refreshGui)
 
 public:
     struct cause {
@@ -82,6 +83,7 @@ public:
     Q_INVOKABLE QString getErrPrevBody(void);
 
     Q_INVOKABLE QString getStationName(int index) const;
+    Q_INVOKABLE int getStationMinutes(int index) const;
     Q_INVOKABLE bool stopHasCause(int index) const;
     Q_INVOKABLE QString getStopCauseCode(int index) const;
     Q_INVOKABLE QString getStopDetailedCauseCode(int index) const;
@@ -95,6 +97,7 @@ public:
     QString getTrainReadyAccepted() const;
     QString getTrainReadyTime() const;
     QString getLastRefreshTime() const;
+    int getCurrentStation() const;
     const timeTableRow* getTimeTableRow(int index) const;
     int getTimeTableCount(void ) const;
     void setTrainNr(QString nr);
@@ -159,8 +162,6 @@ private:
     void addTimetableParam(timeTableRow* tmp, const QString param, const QString value);
     void addCauseCode(timeTableRow* t, const QString p, const QString v);
     QString isoDateWithMsToISODate(QString s);
-
-
 
     void filterTimeTable(QString type = "ARRIVAL");
 

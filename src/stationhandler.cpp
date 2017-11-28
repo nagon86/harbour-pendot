@@ -4,6 +4,7 @@
 #include <QTextCodec>
 #include <QFile>
 
+// Default constructor
 StationHandler::StationHandler(QObject *parent):
     QObject(parent)
 {
@@ -17,13 +18,15 @@ StationHandler::StationHandler(QObject *parent):
             this, SLOT(readNetworkReply(QNetworkReply*)));
 }
 
+// Try to read sation information from local file.
+// If it fails request from network.
 void StationHandler::getData( bool forced ) {
     if ( classUpdating ) {
         qWarning() << "StationHandler still updating data";
         return;
     }
     classUpdating = true;
-    QFile file(STATION_FILENAME);
+    QFile file(STORAGE_FOLDER + "/" + STATION_FILENAME);
     if ( !forced && readFromFile(&file) ) {
         classUpdating = false;
     }
@@ -32,12 +35,15 @@ void StationHandler::getData( bool forced ) {
     }
 }
 
+// Destructor for class
 StationHandler::~StationHandler() {
     _stationList.clear();
     delete n_manager;
     n_manager = NULL;
 }
 
+// Attempts to read data from parameter file
+// If successful returns true
 bool StationHandler::readFromFile(QFile* file) {
     int bOpen = 0;
     if ( !file->open(QIODevice::ReadOnly | QIODevice::Text) ) {
@@ -48,9 +54,12 @@ bool StationHandler::readFromFile(QFile* file) {
         return false;
     }
     else {
+#ifdef QT_QML_DEBUG
         qDebug() << "Opened file: " << file->fileName();
+#endif
         jsonStationsData = file->readAll();
         file->close();
+        // Count brackets to verify that all data is read
         if ( jsonStationsData.length() > 0 && jsonStationsData.at(0) == '[' ) {
             for ( int i = 0; i < jsonStationsData.length(); i++ ) {
                 if ( jsonStationsData.at(i) == '[' || jsonStationsData.at(i) == '{' ) {
@@ -72,16 +81,19 @@ bool StationHandler::readFromFile(QFile* file) {
     return true;
 }
 
+// force reading from the network
 void StationHandler::forceRefresh( void ) {
     _stationList.clear();
     getData(true);
 }
 
+// Read data from network reply
 void StationHandler::readNetworkReply(QNetworkReply* nReply) {
     int bOpen = 0;
     QString data = nReply->readAll();
     nReply->deleteLater();
 
+    // Count brackets to ferify that all data received
     for ( int i = 0; i < data.length(); i++ ) {
         if ( data.at(i) == '[' || data.at(i) == '{' ) {
             bOpen++;
@@ -93,7 +105,8 @@ void StationHandler::readNetworkReply(QNetworkReply* nReply) {
 
     if ( bOpen == 0 ) {
         jsonStationsData = data;
-        QFile file(STATION_FILENAME);
+        // Write data to a file
+        QFile file(STORAGE_FOLDER + "/" + STATION_FILENAME);
         if ( !file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text) ) {
             return;
         }
@@ -107,7 +120,7 @@ void StationHandler::readNetworkReply(QNetworkReply* nReply) {
     }
 }
 
-
+// Function to crunch down station information
 void StationHandler::parseData(void) {
 
     QString param;
@@ -115,11 +128,15 @@ void StationHandler::parseData(void) {
     bool isValue = false;
     Station tmp;
 
+    // Loop through entire data set
     for ( int i = 0; i < jsonStationsData.length(); i++ ) {
         if ( jsonStationsData.at(i) == '[' || jsonStationsData.at(i) == ']' ||
              jsonStationsData.at(i) == '{' || jsonStationsData.at(i) == '"' ) {
             // Skip
         }
+
+        // End of JSON "element"
+        // Add data to station list
         else if ( jsonStationsData.at(i) == '}' ) {
             isValue = false;
             addStation(&tmp, param, value);
@@ -128,11 +145,16 @@ void StationHandler::parseData(void) {
             param.clear();
             value.clear();
         }
+
+        // Delimiter between parameter name and value
+        // aka end of parameter name
         else if ( jsonStationsData.at(i) == ':' ) {
             if ( !isValue ) {
                 isValue = true;
             }
         }
+
+        // End of value
         else if ( jsonStationsData.at(i) == ',' ) {
             isValue = false;
             addStation(&tmp, param, value);
@@ -150,6 +172,7 @@ void StationHandler::parseData(void) {
     }
 }
 
+// Helper function to add parameter values to correct spot in the struct
 void StationHandler::addStation(Station* s, QString p, QString v) {
     if ( p.isEmpty() && v.isEmpty() ) {
         // Nothing to do
@@ -191,6 +214,8 @@ void StationHandler::addStation(Station* s, QString p, QString v) {
     }
 }
 
+// Gets station name that is matching with the short code
+// If value can't be found, return station short code
 QString StationHandler::getStationName( QString shortStationCode ) {
     QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
     if ( iter == _stationList.end() ) {
@@ -199,6 +224,8 @@ QString StationHandler::getStationName( QString shortStationCode ) {
     return iter->stationName;
 }
 
+// Gets station UIC code that is matching with the short code
+// If value can't be found, return station short code
 QString StationHandler::getStationUICCode( QString shortStationCode ) {
     QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
     if ( iter == _stationList.end() ) {
@@ -207,6 +234,8 @@ QString StationHandler::getStationUICCode( QString shortStationCode ) {
     return iter->stationUICCode;
 }
 
+// Gets station country that is matching with the short code
+// If value can't be found, return station short code
 QString StationHandler::getStationCountry( QString shortStationCode ) {
     QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
     if ( iter == _stationList.end() ) {
@@ -215,6 +244,8 @@ QString StationHandler::getStationCountry( QString shortStationCode ) {
     return iter->countryCode;
 }
 
+// Gets station longitude that is matching with the short code
+// If value can't be found, return station short code
 QString StationHandler::getStationLongitude( QString shortStationCode ) {
     QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
     if ( iter == _stationList.end() ) {
@@ -223,6 +254,8 @@ QString StationHandler::getStationLongitude( QString shortStationCode ) {
     return QString::number(iter->longitude);
 }
 
+// Gets station latitude that is matching with the short code
+// If value can't be found, return station short code
 QString StationHandler::getStationLatitude( QString shortStationCode ) {
     QMap<QString,Station>::const_iterator iter = _stationList.find(shortStationCode);
     if ( iter == _stationList.end() ) {
@@ -231,10 +264,13 @@ QString StationHandler::getStationLatitude( QString shortStationCode ) {
     return QString::number(iter->latitude);
 }
 
+// Get station list length
+// Result converted to QString for ease of printing
 QString StationHandler::getStationCount( void ) const {
     return static_cast<QString>(_stationList.count());
 }
 
+// Function to help linking c++ classes together via qml
 StationHandler* StationHandler::getStationPointer(void) {
     if ( _stationList.count() <= 0 ) {
         getData();

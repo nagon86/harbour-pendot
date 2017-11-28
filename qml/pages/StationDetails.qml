@@ -228,7 +228,7 @@ Page {
                     height: Theme.paddingLarge
                     width: parent.width
                     color: Theme.primaryColor
-                    opacity: 0.01
+                    opacity: 0.00
                 }
 
                 Label {
@@ -341,7 +341,9 @@ Page {
                 // Additional spacing
                 Rectangle {
                     height: Theme.paddingLarge
-                    opacity: 0
+                    width: parent.width
+                    color: Theme.primaryColor
+                    opacity: 0.00
                 }
 
                 Label {

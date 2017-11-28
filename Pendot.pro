@@ -24,6 +24,7 @@ SOURCES += src/Pendot.cpp \
 OTHER_FILES += qml/Pendot.qml \
     qml/cover/CoverPage.qml \
     qml/pages/FirstPage.qml \
+    qml/images/Pendot.png \
     rpm/Pendot.changes.in \
     rpm/Pendot.spec \
     rpm/Pendot.yaml \
@@ -40,7 +41,7 @@ CONFIG += sailfishapp_i18n
 # planning to localize your app, remember to comment out the
 # following TRANSLATIONS line. And also do not forget to
 # modify the localized app name in the the .desktop file.
-TRANSLATIONS += translations/Pendot-de.ts
+# TRANSLATIONS += translations/Pendot-de.ts
 
 HEADERS += \
     src/junat.h \

@@ -53,10 +53,14 @@ Dialog {
                     trainNrField.text = tmp
                 }
                 else {
-                    //trainNrField.text = "Please insert integer"
-                    trainNrField.text = "49"
+                    //trainNrField.placeholderText = "Please insert integer"
+                    trainNrField.text = ""
                 }
             }
+
+            // Modify Enter key functionality to close keyboard
+            EnterKey.iconSource: "image://theme/icon-m-enter-close"
+            EnterKey.onClicked: focus = false
         }
 
         Slider {

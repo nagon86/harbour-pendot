@@ -16,6 +16,10 @@ Page {
         dTimer.start()
     }
 
+    Component.onDestruction: {
+        notification.close()
+    }
+
     Timer {
         id: dTimer
         interval: 200
@@ -39,7 +43,7 @@ Page {
 
         // PullDownMenu and PushUpMenu must be declared in SilicaFlickable, SilicaListView or SilicaGridView
         PullDownMenu {
-            MenuItem {
+            /*MenuItem {
                 text: qsTr("Test GoTo")
                 onClicked: {
                     if ( myListView.currentIndex == 20 ) {
@@ -49,7 +53,7 @@ Page {
                         myListView.currentIndex = 10
                     }
                 }
-            }
+            }*/
             MenuItem {
                 text: qsTr(metadataVisible ? "Metadata Lock: Off" : "Metadata Lock: On")
                 onClicked: {

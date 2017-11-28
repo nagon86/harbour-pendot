@@ -15,6 +15,14 @@
         <source>Timestamp:</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Diff in Minutes:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Last Station:</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MainPage</name>
@@ -32,10 +40,6 @@
     </message>
     <message>
         <source>Timetable:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Test GoTo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

@@ -7,13 +7,17 @@
 #include <QDateTime>
 #include <QFile>
 #include <QTextStream>
+#include <QString>
+#include <QDir>
 #include <sailfishapp.h>
 #include "junat.h"
 #include "timetablemodel.h"
 #include "logwriter.h"
 #include "causehandler.h"
+#include "stationhandler.h"
 
 #ifdef QT_QML_DEBUG
+// Function to allow logging to a file
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     static LogWriter log;
@@ -45,6 +49,8 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 }
 #endif
 
+const QString STORAGE_FOLDER = ".local/share/harbour-pendot";
+
 int main(int argc, char *argv[])
 {
 #ifdef QT_QML_DEBUG
@@ -54,6 +60,13 @@ int main(int argc, char *argv[])
     QScopedPointer<QGuiApplication> app(SailfishApp::application(argc, argv));
     app->setApplicationName("pendot");
 
+    // Check if data folder exist.
+    QDir dir(STORAGE_FOLDER);
+    if ( !dir.exists() ) {
+        dir.mkpath(".");
+    }
+
+    // Register classes in a way that qml knows how to utilize them
     qmlRegisterType<Junat>("harbour.pendot.junat",1,0,"Junat");
     qmlRegisterType<TimeTableModel>("harbour.pendot.timetablemodel",1,0,"TimeTableModel");
     qmlRegisterType<StationHandler>("harbour.pendot.stationhandler",1,0,"StationHandler");

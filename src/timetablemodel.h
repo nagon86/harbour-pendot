@@ -9,10 +9,11 @@
 #include "stationhandler.h"
 #include "junat.h"
 
+// QML List model to easily display Train timetable in a list
+
 class TimeTableModel : public QAbstractListModel
 {
     Q_OBJECT
-    //Q_PROPERTY(QString modelReady READ getModelReady NOTIFY modelReadyChanged)
 
 public:
 
@@ -38,29 +39,35 @@ public:
         bool hasCause;
     };
 
+    // Constructor
     TimeTableModel(QObject *parent = 0);
+
+    // Function to get list length
+    // Required by qml list model functionality
     int rowCount(const QModelIndex & parent = QModelIndex()) const;
+
+    // Required by qml list model functionality
+    // QML utilizes this to get required data for each row and each parameter
     QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+
+    // Functions to link this class to junat and station handler classes
+    // to get all required information out.
     Q_INVOKABLE void setPointer(Junat* p);
     Q_INVOKABLE void setStationPointer(StationHandler* p);
-    //Q_INVOKABLE int getPointers(void);
-    //QString getModelReady(void) const;
-    //Q_INVOKABLE void setModelReady(QString s);
 
 protected:
+    // QML List model way of mapping names to values
     QHash<int, QByteArray> roleNames() const;
 
 signals:
-    void modelReadyChanged();
 
 private:
     QList<TimeTable> m_timeTable;
-    void buildTestTable();
     Junat* m_jna;
     StationHandler* m_stn;
-    //bool modelReady;
 
 public slots:
+    // Function to get and filter train time table
     void getNewTable();
 };
 

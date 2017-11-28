@@ -7,6 +7,7 @@
 
 //using namespace std;
 
+// Default Constructor
 Junat::Junat(QObject *parent) :
     QObject(parent),
     trainNr("0"),
@@ -26,6 +27,7 @@ Junat::Junat(QObject *parent) :
     n_manager = new QNetworkAccessManager(this);
     n_request = QNetworkRequest();
 
+    // Initialize retry timer
     retryTimer = new QTimer(this);
     retryTimer->setSingleShot(true);
     connect(retryTimer, SIGNAL(timeout()), this, SLOT(retryGetUrl()));
@@ -36,9 +38,12 @@ Junat::Junat(QObject *parent) :
     s_trainNr = "";
 }
 
+// Destructor
 Junat::~Junat() {
     timeTableRows.clear();
     delete n_manager;
+    delete retryTimer;
+    retryTimer = NULL;
     n_manager = NULL;
 }
 
@@ -60,6 +65,7 @@ void Junat::initData(void) {
     n_error = NetError();
 }
 
+// Initiate new network request
 void Junat::getJSON() {
     if ( n_reply == NULL ) {
 #ifdef QT_QML_DEBUG
@@ -72,10 +78,12 @@ void Junat::getJSON() {
     }
 }
 
+// qml invokable alternative for getJSon
 void Junat::refresData(void) {
     getJSON();
 }
 
+// create notification popup for network errors
 void Junat::netError( QNetworkReply::NetworkError nErr ) {
 #ifdef QT_QML_DEBUG
     qDebug() << QDateTime::currentDateTime().toString("HH:mm:ss") << " ...Network Error Handler... ";
@@ -89,19 +97,23 @@ void Junat::netError( QNetworkReply::NetworkError nErr ) {
     disconnect(n_reply, SIGNAL(readyRead()));
     disconnect(n_reply, SIGNAL(error(QNetworkReply::NetworkError)));
     n_reply = NULL;
-    emit networkErrorNotification();
+    //emit networkErrorNotification();
 }
 
+// Start retry timer with 3s timeout
 void Junat::startRetryTimer(void) {
     retryTimer->start(3000); // Start timer with 3s timeout
 }
 
+// Function to check how many retries has been used.
+// And ultimately give up trying if no valid data is received.
 void Junat::retryGetUrl() {
 #ifdef QT_QML_DEBUG
     qDebug() << "retryGetUrl: " << QDateTime::currentDateTime().toString("HH:mm:ss");
 #endif
     if ( retryCount >= MAX_RETRY_COUNT ) {
         retryCount = 0;
+        emit networkErrorNotification();
         return;
     }
     else {
@@ -110,6 +122,7 @@ void Junat::retryGetUrl() {
     }
 }
 
+// Function to parse data to internal data structures
 void Junat::parseJSON() {
 
     if ( n_reply->error() != QNetworkReply::NoError ) {
@@ -146,13 +159,13 @@ void Junat::parseJSON() {
         n_error.summary = "Received invalid data";
         n_error.previewBody = "Waitin for next Refresh cycle";
         n_error.previewSummary = "Received invalid data";
-        emit networkErrorNotification();
+        //emit networkErrorNotification();
 #endif
+        tmp.clear();
         startRetryTimer();
         return;
     }
-    else {
-    }
+
     if ( tmp == JSONData ) {
         // Data has not changed
     }
@@ -162,8 +175,8 @@ void Junat::parseJSON() {
         if (JSONData.length() > 2) {
             // Valid Response
             initData();
-            if (parseData()) {
-
+            if (parseData() == 0) {
+                // Everything handled correctly
             }
         }
     }
@@ -174,6 +187,7 @@ void Junat::parseJSON() {
 #ifdef QT_QML_DEBUG
     qDebug() << "emit refreshGui " << QDateTime::currentDateTime().toString("HH:mm:ss");
 #endif
+    // Update last refresh time
     lastRefreshTime = QDateTime::currentDateTime();
     retryCount = 0;
     emit refreshGui();
@@ -190,24 +204,38 @@ int Junat::parseData() {
     QVector<QString> paramStack;
     timeTableRow tmp;
 
+    // Go through all data stored in JSONData variable
     do {
+        // Start of new JSON table. Add table name
+        // to parameter stack to keep track on what's going on
         if ( JSONData.at(index) == '[' ) {
             paramStack.push_back(param);
+            // Count brackets to find what level time table is located
             bOpen++;
             if ( param == "timeTableRows" ) {
                 timeTableLevel = bOpen;
             }
             param.clear();
         }
+        // end of JSON table
         else if ( JSONData.at(index) == ']') {
+            // count brackets
             bOpen--;
+            // If end of timeTableRows
             if ( paramStack.at(paramStack.length()-1) =="timeTableRows") {
+                // Store absolute index
+                tmp.absoluteIndex = timeTableRows.length();
+                // Add current data from tmp to vector
                 timeTableRows.append(tmp);
+                // Reset tmp variable
                 tmp = timeTableRow();
             }
+            // Remove one from the parameter stack
             paramStack.pop_back();
         }
+        // Start of JSON element
         else if ( JSONData.at(index) == '{' ) {
+            // Store parameter value before clearing temporary variables
             if ( param.size() != 0 ) {
                 paramStack.push_back(param);
             }
@@ -218,26 +246,34 @@ int Junat::parseData() {
             param.clear();
             bOpen++;
         }
+        // End of JSON element
         else if ( JSONData.at(index) == '}' ) {
+            // Store data to temporary struct
             storeData(param, value, paramStack.at(paramStack.length()-1), &tmp);
-            isValue = false;
+            // reduce parameter stack
             paramStack.pop_back();
             bOpen--;
+            // clear temporary varaibles
+            isValue = false;
             param.clear();
             value.clear();
         }
+        // If separator between parameter name and value
         else if ( !isValue && JSONData.at(index) == ':' ) {
             isValue = true;
         }
         else if ( JSONData.at(index) == ',' ) {
             storeData(param, value, paramStack.at(paramStack.length()-1), &tmp);
+            // If working timeTableRows values
             if ( paramStack.at(paramStack.length()-1) == "timeTableRows" && bOpen == timeTableLevel ) {
-                if ( tmp.causes.hasCause ) {
-                }
+                // add absolute index
                 tmp.absoluteIndex = timeTableRows.length();
+                // store recorded values to vector
                 timeTableRows.append(tmp);
+                // Clear old values
                 tmp = timeTableRow();
             }
+            // Reset values and parameters
             isValue = false;
             param.clear();
             value.clear();
@@ -245,6 +281,8 @@ int Junat::parseData() {
         else if ( JSONData.at(index) == '"' ) {
             //Skip
         }
+        // append data to temporary variables
+        // based on isValue boolean
         else {
             if ( isValue ) {
                 value.append(JSONData.at(index));
@@ -255,9 +293,15 @@ int Junat::parseData() {
         }
     index++;
     } while (bOpen > 0);
+
+    // Return current index at the end of execution
     return index;
 }
 
+// Call helper functions to store data to proper locations in struct t.
+// pp = value from parameter stack
+// p = parameter name
+// v = value name
 bool Junat::storeData(QString p, QString v, QString pp, timeTableRow* t) {
     if ( !pp.isEmpty() ) {
         if ( pp == "timeTableRows") {
@@ -277,6 +321,8 @@ bool Junat::storeData(QString p, QString v, QString pp, timeTableRow* t) {
     return true;
 }
 
+// Helper function to map parameter names to variable names
+// and store values to proper locations and in proper format
 void Junat::addMetaData(QString p, QString v) {
     if (p.isEmpty() && v.isEmpty()) {
         return;
@@ -343,6 +389,9 @@ void Junat::addMetaData(QString p, QString v) {
     }
 }
 
+// Helper function to map parameter names to variable names
+// and store values to proper locations and in proper format.
+// Used for timetable parameters
 void Junat::addTimetableParam(timeTableRow* tmp, const QString param, const QString value) {
         if (param.isEmpty() && value.isEmpty()) {
             return;
@@ -409,6 +458,9 @@ void Junat::addTimetableParam(timeTableRow* tmp, const QString param, const QStr
         }
 }
 
+// Helper function to map parameter names to variable names
+// and store values to proper locations and in proper format.
+// Used for cause codes
 void Junat::addCauseCode(timeTableRow* t, const QString p, const QString v) {
     if (p.isEmpty() && v.isEmpty()) {
         return;
@@ -445,6 +497,8 @@ void Junat::addCauseCode(timeTableRow* t, const QString p, const QString v) {
     }
 }
 
+// Helper function to copy cause codes from arrival to departure
+// and vice versa. Copied only if one is empty.
 void Junat::fixCauseCodes(void) {
     if ( timeTableRows.length() <= 2 ) {
         return;
@@ -464,6 +518,11 @@ void Junat::fixCauseCodes(void) {
     }
 }
 
+// Helper function to fix situations where some stations
+// doesn't have proper time measurement and they never get
+// the "ActualTime" parameter.
+// Starts from last row and after first "actual time" marks every
+// station as passed regardless if the station has "actual time" or not
 void Junat::fixActualTimes(void) {
     bool isActual = false;
     for ( int i = timeTableRows.length()-1; i >= 0; i-- ) {
@@ -482,7 +541,9 @@ void Junat::refreshJunat() {
     getJSON();
 }
 
+// Make request URL based on stored train number
 void Junat::buildUrl(void) {
+    // Check if stored train number is valid integer
     if (s_trainNr.toInt()) {
         currentUrl = QUrl(QString("https://rata.digitraffic.fi/api/v1/live-trains/") + s_trainNr);
     }
@@ -539,7 +600,10 @@ QString Junat::getErrPrevBody(void) {
     return n_error.previewBody;
 }
 
-// Setters
+// -----------
+// | Getters |
+// -----------
+
 void Junat::setTrainNr(QString nr) {
     if ( s_trainNr == nr ) {
         refreshJunat();
@@ -590,7 +654,17 @@ QString Junat::getTrainReadyTime() const {
 }
 
 QString Junat::getStationName(int index) const {
+    if ( index >= timeTableRows.length() || index < 0 ) {
+        return "NULL";
+    }
     return timeTableRows.at(index).stationShortCode;
+}
+
+int Junat::getStationMinutes(int index) const {
+    if ( index >= timeTableRows.length() || index < 0 ) {
+        return 0;
+    }
+    return timeTableRows.at(index).differenceInMinutes;
 }
 
 bool Junat::stopHasCause(int index) const {
@@ -616,4 +690,13 @@ QString Junat::getStopThirdCauseCode(int index) const {
         return "NULL";
     }
     return timeTableRows.at(index).causes.thirdCategoryCode;
+}
+
+int Junat::getCurrentStation() const {
+    for ( int i = timeTableRows.length()-1; i > 0; i-- ) {
+        if ( !timeTableRows.at(i).actualTime.isNull() ) {
+            return i;
+        }
+    }
+    return 0;
 }
