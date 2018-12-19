@@ -69,6 +69,20 @@ CoverBackground {
             width: parent.width
             horizontalAlignment: Label.AlignLeft
             color: Theme.highlightColor
+            text: qsTr("Updated:")
+            visible: pageMode > 0 ? true : false
+        }
+        Label {
+            width: parent.width
+            horizontalAlignment: Label.AlignRight
+            text: jna.getLastRefreshTime
+            clip: true
+            visible: pageMode > 0 ? true : false
+        }
+        Label {
+            width: parent.width
+            horizontalAlignment: Label.AlignLeft
+            color: Theme.highlightColor
             text: qsTr("Last Station:")
             visible: pageMode > 0 ? true : false
         }

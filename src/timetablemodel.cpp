@@ -90,6 +90,9 @@ void TimeTableModel::getNewTable() {
     TimeTable tTmp;
 
     if ( timeTableLength <= 0 ) {
+        QAbstractListModel::beginRemoveRows(QModelIndex(),0,m_timeTable.count());
+        m_timeTable.clear();
+        QAbstractListModel::endRemoveRows();
         return;
     }
 

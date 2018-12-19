@@ -63,6 +63,8 @@ void Junat::initData(void) {
     timeTableRows.clear();
     filteredTimeTable.clear();
     n_error = NetError();
+    trainReady = trainReadying();
+    trainReady.accepted = false;
 }
 
 // Initiate new network request
@@ -71,6 +73,7 @@ void Junat::getJSON() {
 #ifdef QT_QML_DEBUG
         qDebug() << "Initiating network request: " << QDateTime::currentDateTime().toString("HH:mm:ss");
 #endif
+        retryTimer->stop();
         n_request.setUrl(currentUrl);
         n_reply = n_manager->get(n_request);
         connect( n_reply, SIGNAL(readyRead()), this, SLOT(parseJSON()) );
@@ -166,9 +169,16 @@ void Junat::parseJSON() {
         return;
     }
 
+    if ( tmp.length() == 2 ) {
+        initData();
+        emit TimeTableChanged();
+        emit refreshGui();
+    }
+
     if ( tmp == JSONData ) {
         // Data has not changed
     }
+
     else {
         JSONData = tmp;
 

@@ -134,7 +134,7 @@ Page {
                     color: Theme.highlightColor
                     text: qsTr("Train Ready:")
                 }
-                Label { text: jna.getTrainReadyAccepted ? "True" : "False" }
+                Label { text: jna.getTrainReadyAccepted }
                 Label {
                     color: Theme.highlightColor
                     text: qsTr("   Source:")
